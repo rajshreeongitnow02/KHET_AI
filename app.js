@@ -1400,10 +1400,13 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
         const temp10cm = (soilData.t10 - 273.15).toFixed(1);
         const uvi = soilData.uvi || 0;
 
-        document.getElementById('moisture-display').innerText = moisture;
-        document.getElementById('temp-display').innerText = tempSurface;
-        document.getElementById('temp10-display').innerText = temp10cm;
-        document.getElementById('uvi-display').innerText = uvi;
+        document.getElementById('moisture-display').innerText = soilData.moisture;
+document.getElementById('temp-display').innerText = tempSurface;
+document.getElementById('temp10-display').innerText = temp10cm;
+document.getElementById('uvi-display').innerText = uvi;
+document.getElementById('rain-display').innerText = rain1h;
+            document.getElementById('et-display').innerText = etProxy.toFixed(1);
+          document.getElementById('smd-display').innerText = smd.toFixed(3);
 
         // 2. Process Weather & Calculate Advanced Agronomics
         if (weatherData.current && weatherData.current.main) {
