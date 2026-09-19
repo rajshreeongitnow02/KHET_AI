@@ -1,0 +1,685 @@
+{
+  "en": {
+    "nav": {
+      "brand": "AgriRakshak",
+      "tagline": "Guardian of Crops"
+    },
+    "nav2": {
+      "farmer": "Farmer",
+      "officer": "Extension officer"
+    },
+    "hero": {
+      "eyebrow": "Smart India Hackathon 2026 · PS 26131",
+      "title": "See the disease\nbefore it spreads.",
+      "sub": "Farmers often spot crop trouble only after the damage is done. AgriRakshak reads a leaf photo, checks the week's weather, and tells you what's wrong — and what to do — before it costs you the harvest.",
+      "cta": "Scan a leaf",
+      "cta2": "How it works"
+    },
+    "demo": {
+      "soilAdded": "Soil Added",
+      "fruitAdded": "Fruit Added",
+      "recordAudio": "Record Audio Note",
+      "stopAudio": "Stop Recording",
+      "eyebrow": "Try it",
+      "eyebrow2": "How it works",
+      "title": "Leaf health scanner",
+      "instruction": "Pick a leaf below, or drop your own photo.",
+      "upload": "Upload your photo",
+      "uploaded": "Your photo",
+      "checking": "Checking your photo for a leaf…",
+      "analyzing": "Analyzing the symptoms…",
+      "notLeaf": "We couldn't detect a plant leaf in this photo. Please upload a clear, well-lit photo of a single leaf and try again.",
+      "scan": "Scan for disease",
+      "scanning": "Reading the leaf…",
+      "demoNote": "Demo mode — results are simulated from sample data, not a live model.",
+      "resultTitle": "Diagnosis",
+      "confidence": "Confidence",
+      "severity": "Severity",
+      "advisoryTitle": "What to do",
+      "talkToOfficer": "Send to extension officer",
+      "stamp": "VERIFIED",
+      "aiBadge": "AI estimate — not yet verified",
+      "verifiedBadge": "Verified by extension officer",
+      "referSending": "Sending…",
+      "referSentPrefix": "Sent — case",
+      "referPending": "Pending officer review.",
+      "referConfirmedMsg": "Verified by extension officer.",
+      "referResolvedMsg": "Case resolved. Thank you.",
+      "referDistrictNote": "This will be sent to the extension office for {district}.",
+      "aiReasons": {
+        "healthy": "Uniform green tone across the leaf, with no notable spotting or discoloration detected.",
+        "blight": "Brown, necrotic patches detected across a meaningful share of the leaf surface.",
+        "mildew": "Pale, powdery-looking patches detected against the leaf's green background.",
+        "aphid": "Small dark clusters and uneven surface texture detected, consistent with insect activity.",
+        "nitrogen": "Yellowing detected across the leaf, consistent with nutrient stress."
+      },
+      "severityLabels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "results": {
+      "healthy": {
+        "name": "Healthy leaf",
+        "advisory": "IPM: No action needed. Maintain optimal spacing and current watering schedule. Safe Usage: Avoid unnecessary chemical inputs to protect soil health."
+      },
+      "blight": {
+        "name": "Early leaf blight",
+        "advisory": "IPM: Remove affected leaves and ensure crop rotation. Improve drainage. Safe Usage: Apply copper-based fungicide. Wear gloves and mask. Strictly avoid overhead watering."
+      },
+      "mildew": {
+        "name": "Powdery mildew",
+        "advisory": "IPM: Improve airflow by spacing plants further apart. Prune dense canopies. Safe Usage: Apply a sulfur-based spray in the evening. Wear protective eyewear; re-check in 5 days."
+      },
+      "aphid": {
+        "name": "Aphid infestation",
+        "advisory": "IPM: Introduce natural predators like ladybirds. Use yellow sticky traps. Safe Usage: Spray a 2% neem oil solution. Avoid broad-spectrum synthetic pesticides to protect beneficial insects."
+      },
+      "nitrogen": {
+        "name": "Nitrogen deficiency",
+        "advisory": "IPM: Yellowing starts from older leaves. Plant nitrogen-fixing cover crops (e.g., legumes) in the off-season. Safe Usage: Apply a calibrated nitrogen-rich top dressing."
+      }
+    },
+    "risk": {
+      "eyebrow": "This week",
+      "title": "Field risk forecast",
+      "selectLabel": "Choose your district",
+      "next5": "Next 5 days risk prediction"
+    },
+    "districts": {
+      "pune": {
+        "name": "Pune",
+        "reasoning": "Humidity has stayed above 70% for three days running — fungal risk is climbing."
+      },
+      "nashik": {
+        "name": "Nashik",
+        "reasoning": "Recent rainfall plus warm nights favour blight — inspect grape and onion plots this week."
+      },
+      "sambhajinagar": {
+        "name": "Chhatrapati Sambhajinagar",
+        "reasoning": "Dry, clear conditions expected — disease pressure is low, but watch for aphids on cotton."
+      },
+      "kolhapur": {
+        "name": "Kolhapur",
+        "reasoning": "Heavy monsoon carryover keeps fields waterlogged — root rot risk is elevated."
+      },
+      "amravati": {
+        "name": "Amravati",
+        "reasoning": "Fluctuating temperatures are stressing cotton — bollworm activity is likely to rise."
+      },
+      "nagpur": {
+        "name": "Nagpur",
+        "reasoning": "Stable, dry weather this week — a good window for preventive spraying."
+      }
+    },
+    "how": {
+      "title": "Four steps, in the field",
+      "steps": [
+        {
+          "title": "Capture",
+          "body": "Take a photo of the affected leaf using your camera or upload a clear picture."
+        },
+        {
+          "title": "Diagnose",
+          "body": "AgriRakshak matches the image and local weather against known disease and pest patterns."
+        },
+        {
+          "title": "Advisory",
+          "body": "You get a plain-language recommendation in your language — what it is, how bad, what to do."
+        },
+        {
+          "title": "Follow-up",
+          "body": "Confirmed cases feed a district map so officials can act before an outbreak spreads."
+        }
+      ]
+    },
+    "officer": {
+      "eyebrow": "Extension officer",
+      "title": "Case review dashboard",
+      "subtitle": "Review farmer-submitted cases, confirm diagnoses, and track follow-up.",
+      "demoNote": "Demo data — shared live with everyone using this app right now. Send a case from Farmer view to see it appear here.",
+      "filterLabel": "Filter by status",
+      "reseed": "Reset demo data",
+      "statTotal": "Total cases",
+      "statPending": "Pending review",
+      "statConfirmed": "Confirmed",
+      "statTopIssue": "Most reported issue",
+      "none": "—",
+      "filterAll": "All statuses",
+      "filterPending": "Pending",
+      "filterConfirmed": "Confirmed",
+      "filterResolved": "Resolved",
+      "emptyState": "No cases match this filter yet.",
+      "confirmBtn": "Confirm diagnosis",
+      "resolveBtn": "Mark resolved",
+      "statusPending": "Pending",
+      "statusConfirmed": "Confirmed",
+      "statusResolved": "Resolved",
+      "statusLab_testing": "Lab Testing",
+      "submitted": "Submitted",
+      "confirmedOn": "Confirmed",
+      "hotspotEyebrow": "Geospatial Intelligence",
+      "hotspotTitle": "Live Disease Hotspots",
+      "labBtn": "Send to Lab",
+      "followupBtn": "Set Follow-up",
+      "showHistory": "Show history / archived",
+      "clearResolved": "Clear resolved cases"
+      
+    },
+    "footer": {
+      "line1": "Built for Smart India Hackathon 2026 — Problem Statement 26131",
+      "line2": "Government of Maharashtra · Maharashtra State Innovation Society",
+      "disclaimer": "This is a concept demo. Diagnoses shown are simulated, not agronomic or medical advice."
+    }
+  },
+  "hi": {
+    "nav": {
+      "brand": "एग्रीरक्षक",
+      "tagline": "फसलों का रक्षक"
+    },
+    "nav2": {
+      "farmer": "किसान",
+      "officer": "विस्तार अधिकारी"
+    },
+    "hero": {
+      "eyebrow": "स्मार्ट इंडिया हैकाथॉन 2026 · समस्या 26131",
+      "title": "बीमारी फैलने से पहले\nपहचानें।",
+      "sub": "किसान को अक्सर फसल की समस्या तब पता चलती है जब नुकसान हो चुका होता है। एग्रीरक्षक पत्ती की फोटो और हफ्ते के मौसम को देखकर बताता है कि क्या गड़बड़ है — और नुकसान से पहले क्या करना है।",
+      "cta": "पत्ती स्कैन करें",
+      "cta2": "यह कैसे काम करता है"
+    },
+    "demo": {
+      "eyebrow": "आज़माएं",
+      "eyebrow2": "यह कैसे काम करता है",
+      "title": "पत्ती स्वास्थ्य स्कैनर",
+      "instruction": "नीचे से एक पत्ती चुनें, या अपनी फोटो डालें।",
+      "upload": "अपनी फोटो अपलोड करें",
+      "uploaded": "आपकी फोटो",
+      "checking": "आपकी फोटो में पत्ती जाँची जा रही है…",
+      "analyzing": "लक्षणों का विश्लेषण किया जा रहा है…",
+      "notLeaf": "हमें इस फोटो में पौधे की पत्ती नहीं मिली। कृपया एक पत्ती की स्पष्ट, अच्छी रोशनी वाली फोटो अपलोड करें और फिर कोशिश करें।",
+      "scan": "बीमारी जांचें",
+      "scanning": "पत्ती पढ़ी जा रही है…",
+      "demoNote": "डेमो मोड — परिणाम नमूना डेटा से बनाए गए हैं, यह लाइव मॉडल नहीं है।",
+      "resultTitle": "निदान",
+      "confidence": "विश्वास स्तर",
+      "severity": "गंभीरता",
+      "advisoryTitle": "क्या करें",
+      "talkToOfficer": "विस्तार अधिकारी को भेजें",
+      "stamp": "सत्यापित",
+      "aiBadge": "एआई अनुमान — अभी सत्यापित नहीं",
+      "verifiedBadge": "विस्तार अधिकारी द्वारा सत्यापित",
+      "referSending": "भेजा जा रहा है…",
+      "referSentPrefix": "भेजा गया — मामला",
+      "referPending": "अधिकारी की समीक्षा लंबित है।",
+      "referConfirmedMsg": "विस्तार अधिकारी द्वारा सत्यापित।",
+      "referResolvedMsg": "मामला निपटाया गया। धन्यवाद।",
+      "referDistrictNote": "यह {district} के विस्तार कार्यालय को भेजा जाएगा।",
+      "aiReasons": {
+        "healthy": "पूरी पत्ती पर एक समान हरा रंग है, कोई खास धब्बे या रंग-बदलाव नहीं मिला।",
+        "blight": "पत्ती की सतह के बड़े हिस्से पर भूरे, सूखे धब्बे पाए गए।",
+        "mildew": "पत्ती के हरे रंग पर हल्के, पाउडर जैसे धब्बे पाए गए।",
+        "aphid": "छोटे गहरे धब्बों के समूह और असमान बनावट मिली, जो कीट गतिविधि से मेल खाती है।",
+        "nitrogen": "पूरी पत्ती पर पीलापन पाया गया, जो पोषक तत्वों की कमी से मेल खाता है।"
+      },
+      "severityLabels": {
+        "low": "कम",
+        "medium": "मध्यम",
+        "high": "अधिक"
+      }
+    },
+    "results": {
+      "healthy": {
+        "name": "स्वस्थ पत्ती",
+        "advisory": "IPM: कोई कार्रवाई ज़रूरी नहीं। उचित दूरी और सिंचाई का समय बनाए रखें। सुरक्षित उपयोग: मिट्टी के स्वास्थ्य को बचाने के लिए अनावश्यक रसायनों से बचें।"
+      },
+      "blight": {
+        "name": "आरंभिक पत्ती झुलसा रोग",
+        "advisory": "IPM: प्रभावित पत्तियों को हटाएँ और फसल चक्र अपनाएँ। जल निकासी में सुधार करें। सुरक्षित उपयोग: कॉपर-आधारित फफूंदनाशक लगाएँ। दस्ताने और मास्क पहनें। ऊपर से सिंचाई करने से बचें।"
+      },
+      "mildew": {
+        "name": "चूर्णिल आसिता (पाउडरी मिल्ड्यू)",
+        "advisory": "IPM: पौधों के बीच दूरी बढ़ाकर हवा का आवागमन सुधारें। घनी पत्तियों की छंटाई करें। सुरक्षित उपयोग: शाम को सल्फर-आधारित स्प्रे करें। सुरक्षा चश्मा पहनें; 5 दिन बाद फिर जाँचें।"
+      },
+      "aphid": {
+        "name": "माहू कीट प्रकोप",
+        "advisory": "IPM: लेडीबर्ड जैसे प्राकृतिक मित्र कीटों का उपयोग करें। पीले चिपचिपे ट्रैप लगाएँ। सुरक्षित उपयोग: 2% नीम तेल के घोल का छिड़काव करें। मित्र कीटों को बचाने के लिए व्यापक सिंथेटिक कीटनाशकों से बचें।"
+      },
+      "nitrogen": {
+        "name": "नाइट्रोजन की कमी",
+        "advisory": "IPM: पीलापन पुरानी पत्तियों से शुरू होता है। ऑफ-सीजन में नाइट्रोजन-फिक्सिंग कवर फसलें (जैसे फलीदार पौधे) लगाएँ। सुरक्षित उपयोग: संतुलित मात्रा में नाइट्रोजन युक्त खाद डालें।"
+      }
+    },
+    "risk": {
+      "eyebrow": "इस हफ्ते",
+      "title": "खेत जोखिम पूर्वानुमान",
+      "selectLabel": "अपना जिला चुनें",
+      "next5": "अगले 5 दिन"
+    },
+    "districts": {
+      "pune": {
+        "name": "पुणे",
+        "reasoning": "तीन दिनों से नमी 70% से ऊपर है — फफूंद जनित जोखिम बढ़ रहा है।"
+      },
+      "nashik": {
+        "name": "नासिक",
+        "reasoning": "हाल की बारिश और गर्म रातें झुलसा रोग को बढ़ावा दे रही हैं — अंगूर और प्याज़ के खेतों की जांच करें।"
+      },
+      "sambhajinagar": {
+        "name": "छत्रपती संभाजीनगर",
+        "reasoning": "सूखा, साफ मौसम रहेगा — बीमारी का खतरा कम है, लेकिन कपास पर माहू पर नज़र रखें।"
+      },
+      "kolhapur": {
+        "name": "कोल्हापुर",
+        "reasoning": "मानसून का असर अभी बना है, खेतों में पानी भरा है — जड़ सड़न का खतरा बढ़ा है।"
+      },
+      "amravati": {
+        "name": "अमरावती",
+        "reasoning": "बदलता तापमान कपास पर असर डाल रहा है — बॉलवर्म की सक्रियता बढ़ सकती है।"
+      },
+      "nagpur": {
+        "name": "नागपुर",
+        "reasoning": "इस हफ्ते मौसम स्थिर और सूखा रहेगा — बचावी छिड़काव के लिए अच्छा समय।"
+      }
+    },
+    "how": {
+      "title": "चार चरण, खेत में",
+      "steps": [
+        {
+          "title": "फोटो लें",
+          "body": "प्रभावित पत्ती की स्पष्ट फोटो लें।"
+        },
+        {
+          "title": "निदान करें",
+          "body": "एग्रीरक्षक फोटो और स्थानीय मौसम की तुलना जानी-मानी बीमारी और कीट पैटर्न से करता है।"
+        },
+        {
+          "title": "सलाह पाएं",
+          "body": "आपको अपनी भाषा में सीधी सलाह मिलती है — समस्या क्या है, कितनी गंभीर है, और क्या करना है।"
+        },
+        {
+          "title": "फॉलो-अप",
+          "body": "पुष्ट मामले जिला मानचित्र में जुड़ते हैं जिससे अधिकारी फैलाव से पहले कार्रवाई कर सकें।"
+        }
+      ]
+    },
+    "officer": {
+      "eyebrow": "विस्तार अधिकारी",
+      "title": "मामला समीक्षा डैशबोर्ड",
+      "subtitle": "किसानों द्वारा भेजे गए मामलों की समीक्षा करें, निदान की पुष्टि करें, और फॉलो-अप ट्रैक करें।",
+      "demoNote": "डेमो डेटा — अभी इस ऐप का उपयोग करने वाले सभी लोगों के साथ साझा है। किसान दृश्य से एक मामला भेजें, यह यहाँ दिखेगा।",
+      "filterLabel": "स्थिति से फ़िल्टर करें",
+      "reseed": "डेमो डेटा रीसेट करें",
+      "statTotal": "कुल मामले",
+      "statPending": "समीक्षा लंबित",
+      "statConfirmed": "पुष्टि किए गए",
+      "statTopIssue": "सबसे अधिक रिपोर्ट की गई समस्या",
+      "none": "—",
+      "filterAll": "सभी स्थितियाँ",
+      "filterPending": "लंबित",
+      "filterConfirmed": "पुष्टि की गई",
+      "filterResolved": "निपटाया गया",
+      "emptyState": "इस फ़िल्टर से मेल खाता कोई मामला नहीं है।",
+      "confirmBtn": "निदान की पुष्टि करें",
+      "resolveBtn": "निपटाया गया चिह्नित करें",
+      "statusPending": "लंबित",
+      "statusConfirmed": "पुष्टि की गई",
+      "statusResolved": "निपटाया गया",
+      "statusLab_testing": "लैब परीक्षण",
+      "submitted": "भेजा गया",
+      "confirmedOn": "पुष्टि हुई",
+      "hotspotEyebrow": "भू-स्थानिक जानकारी",
+      "hotspotTitle": "लाइव बीमारी हॉटस्पॉट",
+      "labBtn": "लैब में भेजें",
+      "followupBtn": "फॉलो-अप सेट करें",
+      "showHistory": "इतिहास / आर्काइव देखें",
+      "clearResolved": "हल किए गए केस साफ़ करें"
+    },
+    "footer": {
+      "line1": "स्मार्ट इंडिया हैकाथॉन 2026 — समस्या 26131",
+      "line2": "महाराष्ट्र सरकार · महाराष्ट्र राज्य नवाचार सोसायटी",
+      "disclaimer": "यह एक अवधारणा डेमो है। दिखाए गए निदान सिम्युलेटेड हैं, कृषि संबंधी या चिकित्सीय सलाह नहीं।"
+    }
+  },
+  "mr": {
+    "nav": {
+      "brand": "कृषि रक्षक",
+      "tagline": "पिकांचे रक्षक"
+    },
+    "nav2": {
+      "farmer": "शेतकरी",
+      "officer": "विस्तार अधिकारी"
+    },
+    "hero": {
+      "eyebrow": "Smart India Hackathon 2026 · PS 26131",
+      "title": "रोग पसरण्यापूर्वीच\nओळखा.",
+      "sub": "शेतकऱ्यांना अनेकदा नुकसान झाल्यानंतरच पिकांच्या समस्या लक्षात येतात. ॲग्रीरक्षक पानांचे फोटो स्कॅन करून, हवामान तपासून, पीक नष्ट होण्यापूर्वीच समस्या आणि उपाय सांगते.",
+      "cta": "पान स्कॅन करा",
+      "cta2": "हे कसे काम करते"
+    },
+    "demo": {
+      "eyebrow": "प्रयत्न करून पहा",
+      "eyebrow2": "हे कसे काम करते",
+      "title": "पानांचे आरोग्य स्कॅनर",
+      "instruction": "खालीलपैकी एक पान निवडा, किंवा तुमचा स्वतःचा फोटो अपलोड करा.",
+      "upload": "तुमचा फोटो अपलोड करा",
+      "uploaded": "तुमचा फोटो",
+      "checking": "तुमच्या फोटोत पान आहे की नाही हे तपासत आहे…",
+      "analyzing": "लक्षणे विश्लेषित करत आहे…",
+      "notLeaf": "आम्हाला या फोटोमध्ये कोणत्याही वनस्पतीचे पान आढळले नाही. कृपया स्पष्ट फोटो अपलोड करून पुन्हा प्रयत्न करा.",
+      "scan": "रोग स्कॅन करा",
+      "scanning": "पान स्कॅन करत आहे…",
+      "demoNote": "डेमो मोड — परिणाम नमुना डेटामधून सिम्युलेट केले आहेत, लाइव्ह मॉडेल नाही.",
+      "resultTitle": "रोगनिदान",
+      "confidence": "खात्री",
+      "severity": "तीव्रता",
+      "advisoryTitle": "काय करावे",
+      "talkToOfficer": "विस्तार अधिकाऱ्याकडे पाठवा",
+      "stamp": "सत्यापित",
+      "aiBadge": "AI अंदाज — अद्याप सत्यापित नाही",
+      "verifiedBadge": "विस्तार अधिकाऱ्याद्वारे सत्यापित",
+      "referSending": "पाठवत आहे…",
+      "referSentPrefix": "पाठवले — केस",
+      "referPending": "अधिकाऱ्याच्या पुनरावलोकनाच्या प्रतीक्षेत.",
+      "referConfirmedMsg": "विस्तार अधिकाऱ्याद्वारे सत्यापित.",
+      "referResolvedMsg": "समस्या सोडवली आहे. धन्यवाद.",
+      "referDistrictNote": "हे {district} च्या विस्तार कार्यालयात पाठवले जाईल.",
+      "aiReasons": {
+        "healthy": "पानावर एकसमान हिरवा रंग आहे, कोणतेही डाग किंवा विवर्णता आढळली नाही.",
+        "blight": "पानाच्या पृष्ठभागावर तपकिरी, नेक्रोटिक डाग आढळले.",
+        "mildew": "पानाच्या हिरव्या पार्श्वभूमीवर फिकट, पावडरसारखे डाग आढळले.",
+        "aphid": "लहान गडद पुंजके आणि असमान पृष्ठभाग आढळला, जो कीटकांच्या प्रादुर्भावाचे लक्षण आहे.",
+        "nitrogen": "पानावर पिवळेपणा आढळला, जो पोषक तत्वांच्या कमतरतेचे लक्षण आहे."
+      },
+      "severityLabels": {
+        "low": "कमी",
+        "medium": "मध्यम",
+        "high": "जास्त"
+      }
+    },
+    "results": {
+      "healthy": {
+        "name": "निरोगी पान",
+        "advisory": "IPM: कोणत्याही कृतीची आवश्यकता नाही. योग्य अंतर आणि सध्याचे पाणी देण्याचे वेळापत्रक चालू ठेवा. सुरक्षित वापर: मातीचे आरोग्य राखण्यासाठी अनावश्यक रसायने टाळा."
+      },
+      "blight": {
+        "name": "अर्ली ब्लाइट (करपा)",
+        "advisory": "IPM: बाधित पाने काढून टाका आणि पीक फेरपालट करा. पाण्याचा निचरा सुधारा. सुरक्षित वापर: तांबे-आधारित बुरशीनाशक फवारा. हातमोजे आणि मास्क घाला."
+      },
+      "mildew": {
+        "name": "पावडरी मिल्ड्यू (भुरी)",
+        "advisory": "IPM: झाडांमधील अंतर वाढवून हवा खेळती राहील याची खात्री करा. सुरक्षित वापर: संध्याकाळी गंधक-आधारित फवारणी करा. संरक्षणात्मक चष्मा घाला."
+      },
+      "aphid": {
+        "name": "मावा (Aphid) प्रादुर्भाव",
+        "advisory": "IPM: लेडीबर्ड्स सारख्या नैसर्गिक शत्रू कीटकांचा वापर करा. पिवळे चिकट सापळे लावा. सुरक्षित वापर: २% कडुनिंबाच्या तेलाची फवारणी करा."
+      },
+      "nitrogen": {
+        "name": "नायट्रोजनची कमतरता",
+        "advisory": "IPM: जुन्या पानांपासून पिवळे पडणे सुरू होते. मोकळ्या हंगामात नायट्रोजन स्थिरीकरण करणारी पिके घ्या. सुरक्षित वापर: शिफारस केलेले नायट्रोजनयुक्त खत द्या."
+      }
+    },
+    "risk": {
+      "eyebrow": "या आठवड्यात",
+      "title": "शेतातील धोक्याचा अंदाज",
+      "selectLabel": "तुमचा जिल्हा निवडा",
+      "next5": "पुढील ५ दिवस"
+    },
+    "districts": {
+      "pune": {
+        "name": "पुणे",
+        "reasoning": "सलग तीन दिवस आर्द्रता ७०% च्या वर आहे — बुरशीजन्य रोगांचा धोका वाढतोय."
+      },
+      "nashik": {
+        "name": "नाशिक",
+        "reasoning": "अलीकडील पाऊस आणि उबदार रात्री करपा रोगास अनुकूल आहेत — या आठवड्यात शेताची पाहणी करा."
+      },
+      "sambhajinagar": {
+        "name": "छत्रपती संभाजीनगर",
+        "reasoning": "कोरड्या आणि स्वच्छ हवामानाचा अंदाज आहे — रोगाचा प्रादुर्भाव कमी, पण कापसावरील माव्यावर लक्ष ठेवा."
+      },
+      "kolhapur": {
+        "name": "कोल्हापूर",
+        "reasoning": "मुसळधार पावसामुळे शेतात पाणी साचले आहे — मूळकुजव्याचा धोका वाढला आहे."
+      },
+      "amravati": {
+        "name": "अमरावती",
+        "reasoning": "तापमानातील चढउतारांमुळे कापसाच्या पिकावर ताण — बोंडअळीचा प्रादुर्भाव वाढण्याची शक्यता."
+      },
+      "nagpur": {
+        "name": "नागपूर",
+        "reasoning": "जास्त तापमानामुळे पिकांवर ताण येऊ शकतो — सिंचन व्यवस्था योग्य ठेवा."
+      }
+    },
+    "how": {
+      "title": "शेतात चार सोप्या पायऱ्या",
+      "steps": [
+        {
+          "title": "फोटो काढा",
+          "body": "संशयास्पद पानाचा स्पष्ट फोटो काढा."
+        },
+        {
+          "title": "स्कॅन करा",
+          "body": "AgriRakshak ॲपचे AI मॉडेल रोगाचे निदान करेल."
+        },
+        {
+          "title": "सल्ला मिळवा",
+          "body": "काय करावे यावर त्वरित मार्गदर्शन मिळवा."
+        },
+        {
+          "title": "अधिकाऱ्याला कळवा",
+          "body": "आवश्यक असल्यास, तज्ञांच्या मदतीसाठी थेट विस्तार अधिकाऱ्याशी संपर्क साधा."
+        }
+      ]
+    },
+    "officer": {
+      "eyebrow": "विस्तार अधिकारी",
+      "title": "केस पुनरावलोकन डॅशबोर्ड",
+      "subtitle": "शेतकऱ्यांनी सादर केलेल्या केसेसचे पुनरावलोकन करा, निदानाची पुष्टी करा आणि पाठपुरावा ट्रॅक करा.",
+      "demoNote": "डेमो डेटा — सध्या हे ॲप वापरणाऱ्या प्रत्येकासोबत लाइव्ह शेअर केले जाते.",
+      "filterLabel": "स्थितीनुसार फिल्टर करा",
+      "reseed": "डेमो डेटा रीसेट करा",
+      "statTotal": "एकूण केसेस",
+      "statPending": "प्रलंबित",
+      "statConfirmed": "पुष्टी केली",
+      "statTopIssue": "सर्वाधिक नोंदवलेली समस्या",
+      "none": "काहीही नाही",
+      "filterAll": "सर्व स्थिती",
+      "filterPending": "प्रलंबित",
+      "filterConfirmed": "पुष्टी केली",
+      "filterResolved": "निराकरण झाले",
+      "emptyState": "कोणत्याही केसेस नाहीत",
+      "confirmBtn": "पुष्टी करा",
+      "resolveBtn": "निराकरण करा",
+      "statusPending": "प्रलंबित",
+      "statusConfirmed": "पुष्टी केली",
+      "statusResolved": "निराकरण झाले",
+      "statusLab_testing": "लॅब चाचणी",
+      "submitted": "सादर केले",
+      "confirmedOn": "पुष्टी झाली",
+      "hotspotEyebrow": "जिओस्पेशियल इंटेलिजन्स",
+      "hotspotTitle": "लाइव्ह रोग हॉटस्पॉट आणि क्लस्टर मॅपिंग",
+      "labBtn": "लॅबमध्ये पाठवा",
+      "followupBtn": "फॉलो-अप सेट करा",
+      "showHistory": "इतिहास / आर्काइव्ह केलेले पहा",
+      "clearResolved": "सोडवलेले केस साफ करा"
+    },
+    "footer": {
+      "line1": "स्मार्ट इंडिया हॅकेथॉन २०२६ साठी तयार केलेले — समस्या विधान २६१३१",
+      "line2": "महाराष्ट्र शासन · महाराष्ट्र राज्य नाविन्यता सोसायटी",
+      "disclaimer": "हा एक संकल्पना डेमो आहे. दाखवलेले रोगनिदान सिम्युलेटेड आहेत, हा कोणताही कृषी किंवा वैद्यकीय सल्ला नाही."
+    }
+  },
+  "bn": {
+    "nav": {
+      "brand": "কৃষি রক্ষক",
+      "tagline": "ফসলের রক্ষক"
+    },
+    "nav2": {
+      "farmer": "কৃষক",
+      "officer": "সম্প্রসারণ কর্মকর্তা"
+    },
+    "hero": {
+      "eyebrow": "Smart India Hackathon 2026 · PS 26131",
+      "title": "রোগ ছড়ানোর আগেই\nতা চিহ্নিত করুন।",
+      "sub": "কৃষকরা প্রায়শই ক্ষতি হওয়ার পরেই ফসলের সমস্যা চিহ্নিত করেন। AgriRakshak পাতার ছবি পড়ে, আবহাওয়া যাচাই করে এবং ফসল নষ্ট হওয়ার আগেই সমস্যা ও প্রতিকার জানিয়ে দেয়।",
+      "cta": "পাতা স্ক্যান করুন",
+      "cta2": "এটি কীভাবে কাজ করে"
+    },
+    "demo": {
+      "eyebrow": "চেষ্টা করুন",
+      "eyebrow2": "এটি কীভাবে কাজ করে",
+      "title": "পাতার স্বাস্থ্য স্ক্যানার",
+      "instruction": "নিচে একটি পাতা নির্বাচন করুন, অথবা আপনার নিজের ছবি আপলোড করুন।",
+      "upload": "আপনার ছবি আপলোড করুন",
+      "uploaded": "আপনার ছবি",
+      "checking": "আপনার ছবিতে পাতা আছে কিনা যাচাই করা হচ্ছে…",
+      "analyzing": "লক্ষণগুলো বিশ্লেষণ করা হচ্ছে…",
+      "notLeaf": "আমরা এই ছবিতে কোনো উদ্ভিদের পাতা শনাক্ত করতে পারিনি। অনুগ্রহ করে একটি পরিষ্কার ছবি আপলোড করে আবার চেষ্টা করুন।",
+      "scan": "রোগ স্ক্যান করুন",
+      "scanning": "পাতা পড়া হচ্ছে…",
+      "demoNote": "ডেমো মোড — ফলাফলগুলি নমুনা ডেটা থেকে সিমুলেট করা হয়েছে, লাইভ মডেল নয়।",
+      "resultTitle": "রোগ নির্ণয়",
+      "confidence": "আত্মবিশ্বাস",
+      "severity": "তীব্রতা",
+      "advisoryTitle": "কী করতে হবে",
+      "talkToOfficer": "সম্প্রসারণ কর্মকর্তার কাছে পাঠান",
+      "stamp": "যাচাইকৃত",
+      "aiBadge": "এআই অনুমান — এখনও যাচাই করা হয়নি",
+      "verifiedBadge": "সম্প্রসারণ কর্মকর্তা দ্বারা যাচাইকৃত",
+      "referSending": "পাঠানো হচ্ছে…",
+      "referSentPrefix": "পাঠানো হয়েছে — কেস",
+      "referPending": "কর্মকর্তার পর্যালোচনার অপেক্ষায়।",
+      "referConfirmedMsg": "সম্প্রসারণ কর্মকর্তা দ্বারা যাচাইকৃত।",
+      "referResolvedMsg": "সমস্যার সমাধান হয়েছে। ধন্যবাদ।",
+      "referDistrictNote": "এটি {district}-এর সম্প্রসারণ অফিসে পাঠানো হবে।",
+      "aiReasons": {
+        "healthy": "পাতায় অভিন্ন সবুজ আভা, কোনো দাগ বা বিবর্ণতা শনাক্ত হয়নি।",
+        "blight": "পাতার উপরিভাগে বাদামী, নেক্রোটিক দাগ শনাক্ত হয়েছে।",
+        "mildew": "পাতার সবুজ পটভূমিতে ফ্যাকাশে, পাউডারি দাগ শনাক্ত হয়েছে।",
+        "aphid": "ছোট অন্ধকার ক্লাস্টার এবং অসম পৃষ্ঠ শনাক্ত করা হয়েছে, যা পোকার আক্রমণের লক্ষণ।",
+        "nitrogen": "পাতায় হলুদ আভা শনাক্ত হয়েছে, যা পুষ্টির অভাবের লক্ষণ।"
+      },
+      "severityLabels": {
+        "low": "নিম্ন",
+        "medium": "মাঝারি",
+        "high": "উচ্চ"
+      }
+    },
+    "results": {
+      "healthy": {
+        "name": "সুস্থ পাতা",
+        "advisory": "IPM: কোনো ব্যবস্থার প্রয়োজন নেই। সঠিক দূরত্ব এবং বর্তমান জল দেওয়ার সময়সূচী বজায় রাখুন। নিরাপদ ব্যবহার: মাটির স্বাস্থ্য রক্ষায় অপ্রয়োজনীয় রাসায়নিক এড়িয়ে চলুন।"
+      },
+      "blight": {
+        "name": "আর্লি ব্লাইট",
+        "advisory": "IPM: আক্রান্ত পাতা সরান এবং শস্য আবর্তন নিশ্চিত করুন। নিষ্কাশন উন্নত করুন। নিরাপদ ব্যবহার: তামা-ভিত্তিক ছত্রাকনাশক প্রয়োগ করুন। গ্লাভস এবং মাস্ক পরুন।"
+      },
+      "mildew": {
+        "name": "পাউডারি মিলডিউ",
+        "advisory": "IPM: গাছগুলোর মধ্যে দূরত্ব বাড়িয়ে বাতাস চলাচলের উন্নতি করুন। নিরাপদ ব্যবহার: সন্ধ্যায় সালফার-ভিত্তিক স্প্রে প্রয়োগ করুন। প্রতিরক্ষামূলক চশমা পরুন।"
+      },
+      "aphid": {
+        "name": "জাবপোকার আক্রমণ",
+        "advisory": "IPM: লেডিবার্ডের মতো প্রাকৃতিক শিকারী পোকা আনুন। হলুদ আঠালো ফাঁদ ব্যবহার করুন। নিরাপদ ব্যবহার: ২% নিম তেলের দ্রবণ স্প্রে করুন।"
+      },
+      "nitrogen": {
+        "name": "নাইট্রোজেনের অভাব",
+        "advisory": "IPM: পুরোনো পাতা থেকে হলুদ হওয়া শুরু হয়। অফ-সিজনে নাইট্রোজেন ফিক্সিং কভার ফসল রোপণ করুন। নিরাপদ ব্যবহার: পরিমাণমতো নাইট্রোজেন-সমৃদ্ধ সার প্রয়োগ করুন।"
+      }
+    },
+    "risk": {
+      "eyebrow": "এই সপ্তাহে",
+      "title": "মাঠের ঝুঁকির পূর্বাভাস",
+      "selectLabel": "আপনার জেলা বেছে নিন",
+      "next5": "আগামী ৫ দিন"
+    },
+    "districts": {
+      "pune": {
+        "name": "পুনে",
+        "reasoning": "আর্দ্রতা তিন দিন ধরে ৭০%-এর ওপরে রয়েছে — ছত্রাকের ঝুঁকি বাড়ছে।"
+      },
+      "nashik": {
+        "name": "নাসিক",
+        "reasoning": "সাম্প্রতিক বৃষ্টিপাত এবং উষ্ণ রাত ব্লাইটের অনুকূলে — এই সপ্তাহে খেত পরিদর্শন করুন।"
+      },
+      "sambhajinagar": {
+        "name": "ছত্রপতি সম্ভাজিনগর",
+        "reasoning": "শুষ্ক, পরিষ্কার আবহাওয়া প্রত্যাশিত — রোগের চাপ কম, তবে তুলার জাবপোকা লক্ষ্য রাখুন।"
+      },
+      "kolhapur": {
+        "name": "কোলহাপুর",
+        "reasoning": "প্রচুর বর্ষণের ফলে খেতে জল জমে আছে — শিকড় পচার ঝুঁকি বেড়েছে।"
+      },
+      "amravati": {
+        "name": "অমরাবতী",
+        "reasoning": "তাপমাত্রার ওঠানামা তুলা ফসলের ক্ষতি করছে — বোলওয়ার্মের কার্যকলাপ বৃদ্ধির আশঙ্কা।"
+      },
+      "nagpur": {
+        "name": "নাগপুর",
+        "reasoning": "উচ্চ তাপমাত্রা ফসলের জন্য মানসিক চাপের কারণ হতে পারে — সেচ ব্যবস্থা ঠিক রাখুন।"
+      }
+    },
+    "how": {
+      "title": "মাঠে চার ধাপে",
+      "steps": [
+        {
+          "title": "ছবি তুলুন",
+          "body": "সন্দেহজনক পাতার একটি পরিষ্কার ছবি তুলুন।"
+        },
+        {
+          "title": "স্ক্যান করুন",
+          "body": "AgriRakshak অ্যাপের এআই মডেলটি রোগ নির্ণয় করবে।"
+        },
+        {
+          "title": "পরামর্শ পান",
+          "body": "কী করতে হবে তার তাত্ক্ষণিক নির্দেশিকা পান।"
+        },
+        {
+          "title": "কর্মকর্তাকে জানান",
+          "body": "প্রয়োজনে বিশেষজ্ঞের সাহায্যের জন্য সরাসরি সম্প্রসারণ কর্মকর্তাকে পাঠান।"
+        }
+      ]
+    },
+    "officer": {
+      "eyebrow": "সম্প্রসারণ কর্মকর্তা",
+      "title": "কেস পর্যালোচনা ড্যাশবোর্ড",
+      "subtitle": "কৃষকদের জমা দেওয়া কেস পর্যালোচনা করুন, রোগ নির্ণয় নিশ্চিত করুন এবং ফলো-আপ ট্র্যাক করুন।",
+      "demoNote": "ডেমো ডেটা — বর্তমানে এই অ্যাপটি ব্যবহারকারী সকলের সাথে লাইভ শেয়ার করা হচ্ছে।",
+      "filterLabel": "অবস্থা অনুযায়ী ফিল্টার করুন",
+      "reseed": "ডেমো ডেটা রিসেট করুন",
+      "statTotal": "মোট কেস",
+      "statPending": "পর্যালোচনার অপেক্ষায়",
+      "statConfirmed": "নিশ্চিতকৃত",
+      "statTopIssue": "সবচেয়ে বেশি রিপোর্ট করা সমস্যা",
+      "none": "কোনোটি নয়",
+      "filterAll": "সব অবস্থা",
+      "filterPending": "অপেক্ষায় আছে",
+      "filterConfirmed": "নিশ্চিতকৃত",
+      "filterResolved": "সমাধানকৃত",
+      "emptyState": "কোনো কেস নেই",
+      "confirmBtn": "নিশ্চিত করুন",
+      "resolveBtn": "সমাধান করুন",
+      "statusPending": "অপেক্ষায় আছে",
+      "statusConfirmed": "নিশ্চিতকৃত",
+      "statusResolved": "সমাধানকৃত",
+      "statusLab_testing": "ল্যাব টেস্টিং",
+      "submitted": "জমা দেওয়া হয়েছে",
+      "confirmedOn": "নিশ্চিত করা হয়েছে",
+      "hotspotEyebrow": "জিওস্পেশিয়াল ইন্টেলিজেন্স",
+      "hotspotTitle": "লাইভ রোগের হটস্পট এবং ক্লাস্টার ম্যাপিং",
+      "labBtn": "ল্যাবে পাঠান",
+      "followupBtn": "ফলো-আপ সেট করুন",
+      "showHistory": "ইতিহাস / আর্কাইভ দেখুন",
+      "clearResolved": "সমাধান করা কেস মুছে ফেলুন"
+
+    },
+    "footer": {
+      "line1": "স্মার্ট ইন্ডিয়া হ্যাকাথন ২০২৬ এর জন্য তৈরি — সমস্যা বিবৃতি ২৬১৩১",
+      "line2": "মহারাষ্ট্র সরকার · মহারাষ্ট্র স্টেট ইনোভেশন সোসাইটি",
+      "disclaimer": "এটি একটি কনসেপ্ট ডেমো। দেখানো রোগ নির্ণয়গুলো সিমুলেটেড, কোনো কৃষি বা চিকিৎসীয় পরামর্শ নয়।"
+    }
+  }
+
+}
