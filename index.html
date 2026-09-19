@@ -224,37 +224,37 @@
           <div style="margin-top: 24px; padding: 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
             <div style="color: #ffffff; font-weight: 600; margin-bottom: 14px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Live Field Sensors & Indices</div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 12px; margin-bottom: 14px;">
+            <!-- Live Sensor Data Grid: Forced side-by-side columns -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Soil Moisture</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="moisture-display">--</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Soil Moisture</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="moisture-display">--</span></div>
               </div>
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Surface Temp</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="temp-display">--</span> <span style="font-size:10px; font-weight:normal;">°C</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Surface Temp</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="temp-display">--</span>°C</div>
               </div>
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Root Temp</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="temp10-display">--</span> <span style="font-size:10px; font-weight:normal;">°C</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Root Temp</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="temp10-display">--</span>°C</div>
               </div>
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">UV Index</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="uvi-display">--</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">UV Index</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="uvi-display">--</span></div>
               </div>
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Rain Rate</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="rain-display">--</span> <span style="font-size:10px; font-weight:normal;">mm</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Rain Rate</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="rain-display">--</span>mm</div>
               </div>
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Est. ET Rate</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="et-display">--</span></div>
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Est. ET Rate</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="et-display">--</span></div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Moisture Deficit</div>
-                <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="smd-display">--</span></div>
+              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px; grid-column: span 2;">
+                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Moisture Deficit</div>
+                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="smd-display">--</span></div>
               </div>
             </div>
-
             <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
               <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Planting Fitness Status</div>
               <div id="fitness-status" style="font-size: 13px; font-weight: 600; color: #E3A430; margin-top: 2px;">Analyzing live telemetry...</div>
