@@ -1385,11 +1385,13 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
 // Run Init
 initApp();
 async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
+    console.log("Fetching live telemetry from Render..."); // Add this line
     try {
         const [soilRes, weatherRes] = await Promise.all([
             fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
             fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
         ]);
+        // ... rest of your code ...
 
         const soilData = await soilRes.json();
         const weatherData = await weatherRes.json();
@@ -1485,6 +1487,57 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
         console.error("Error fetching live field data:", error);
     }
 }
+// Update district change event to refresh live telemetry
+document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
+    currentDistrictId = e.target.value;
+    updateRiskUI(currentDistrictId);
+    const coords = districtCoords[currentDistrictId];
+    if (coords) {
+        updateLiveFieldData(coords.lat, coords.lon);
+    }
+});
 
-// Run on page load
-updateLiveFieldData();
+// ===================== RUN INIT ===================== //
+async function initApp(){
+    try{
+        const res = await fetch("translations.json");
+        if(res.ok) {
+            const json = await res.json();
+            translationsData = { ...translationsData, ...json };
+        }
+    }catch(e){
+        console.warn("Using fallback translation data.", e);
+    }
+    
+    applyStaticText();
+    renderLeafGrid();
+    populateDistrictSelect();
+    updateRiskUI(currentDistrictId);
+    renderSteps();
+    resetReferUI();
+
+    // Fetch live sensor metrics on start
+    await updateLiveFieldData();
+
+    try{
+        const existing = await loadAllCases();
+        if(existing.length === 0){ await seedDemoCases(); }
+    }catch(err){
+        console.error("Could not initialize case data:", err);
+    }
+
+    await checkAuthOnStart();
+}
+
+// Update district change event to refresh live telemetry
+document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
+    currentDistrictId = e.target.value;
+    updateRiskUI(currentDistrictId);
+    const coords = districtCoords[currentDistrictId];
+    if (coords) {
+        updateLiveFieldData(coords.lat, coords.lon);
+    }
+});
+
+// Single entry point to run the application
+initApp();
