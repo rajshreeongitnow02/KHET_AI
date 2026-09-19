@@ -190,10 +190,10 @@
         <h2 style="color: #ffffff;" data-i18n="risk.title">Field risk forecast</h2>
       </div>
       
-      <!-- Two-column grid container that keeps the bar chart on the right -->
+      <!-- Two-column grid container keeping the bar chart on the right -->
       <div class="risk-grid">
         
-        <!-- LEFT COLUMN: District selector, gauge score, risk reasoning, and live sensors -->
+        <!-- LEFT COLUMN: District selector, gauge, reasoning, and landscape sensor card -->
         <div>
           <div class="district-select-wrap">
             <label for="districtSelect" style="color: #ffffff;" data-i18n="risk.selectLabel">Choose your district</label>
@@ -220,49 +220,49 @@
           <span class="risk-chip" id="riskChip">—</span>
           <p class="risk-reasoning" id="riskReasoning" style="color: #f1f1f1;">—</p>
 
-          <!-- Live Sensor Data Grid (Nested inside left column) -->
+          <!-- Landscape Sensor Data Panel (All 7 metrics side by side) -->
           <div style="margin-top: 24px; padding: 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-            <div style="color: #ffffff; font-weight: 600; margin-bottom: 14px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Live Field Sensors & Indices</div>
+            <div style="color: #ffffff; font-weight: 600; margin-bottom: 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Live Field Sensors & Indices</div>
             
-            <!-- Live Sensor Data Grid: Forced side-by-side columns -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Soil Moisture</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="moisture-display">--</span></div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; text-align: center;">
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">Soil Moist</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="moisture-display">--</span></div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Surface Temp</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="temp-display">--</span>°C</div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">Surf Temp</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="temp-display">--</span>°C</div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Root Temp</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="temp10-display">--</span>°C</div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">Root Temp</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="temp10-display">--</span>°C</div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">UV Index</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="uvi-display">--</span></div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">UV Index</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="uvi-display">--</span></div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Rain Rate</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="rain-display">--</span>mm</div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">Rain Rate</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="rain-display">--</span>mm</div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Est. ET Rate</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="et-display">--</span></div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">ET Rate</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="et-display">--</span></div>
               </div>
-              <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px; grid-column: span 2;">
-                <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Moisture Deficit</div>
-                <div style="color: #ffffff; font-size: 13px; font-weight: 700; margin-top: 2px;"><span id="smd-display">--</span></div>
+              <div style="background: rgba(0,0,0,0.2); padding: 6px 2px; border-radius: 6px;">
+                <div style="font-size: 8px; color: #a1a1aa; text-transform: uppercase;">SM Deficit</div>
+                <div style="color: #ffffff; font-size: 11px; font-weight: 700; margin-top: 2px;"><span id="smd-display">--</span></div>
               </div>
             </div>
-            <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-              <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Planting Fitness Status</div>
-              <div id="fitness-status" style="font-size: 13px; font-weight: 600; color: #E3A430; margin-top: 2px;">Analyzing live telemetry...</div>
+
+            <div style="padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <div style="font-size: 9px; color: #a1a1aa; text-transform: uppercase;">Planting Fitness Status</div>
+              <div id="fitness-status" style="font-size: 12px; font-weight: 600; color: #E3A430; margin-top: 2px;">Analyzing live telemetry...</div>
             </div>
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: 5-Day Risk Prediction Bar Chart (Snaps back to the right) -->
+        <!-- RIGHT COLUMN: 5-Day Risk Prediction Bar Chart -->
         <div>
           <div class="bars-title" style="color: #ffffff;" data-i18n="risk.next5">Next 5 days risk prediction</div>
           <div class="bar-chart" id="barChart"></div>
