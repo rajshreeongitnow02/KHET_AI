@@ -1385,33 +1385,25 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
 // Run Init
 initApp();
 async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
-    console.log("Fetching live telemetry from Render..."); // Add this line
     try {
         const [soilRes, weatherRes] = await Promise.all([
             fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
             fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
         ]);
-        // ... rest of your code ...
 
         const soilData = await soilRes.json();
         const weatherData = await weatherRes.json();
 
         // 1. Process Soil Metrics
-        const moisture = soilData.moisture !== undefined ? soilData.moisture : "--";
-        const tempSurface = soilData.t0 ? (soilData.t0 - 273.15).toFixed(1) : "--";
-        const temp10cm = soilData.t10 ? (soilData.t10 - 273.15).toFixed(1) : "--";
-        const uvi = soilData.uvi !== undefined ? soilData.uvi : "--";
+        const moisture = soilData.moisture;
+        const tempSurface = (soilData.t0 - 273.15).toFixed(1);
+        const temp10cm = (soilData.t10 - 273.15).toFixed(1);
+        const uvi = soilData.uvi || 0;
 
-        // Safely update DOM elements
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = val;
-        };
-
-        setVal('moisture-display', moisture);
-        setVal('temp-display', tempSurface);
-        setVal('temp10-display', temp10cm);
-        setVal('uvi-display', uvi);
+        document.getElementById('moisture-display').innerText = moisture;
+        document.getElementById('temp-display').innerText = tempSurface;
+        document.getElementById('temp10-display').innerText = temp10cm;
+        document.getElementById('uvi-display').innerText = uvi;
 
         // 2. Process Weather & Calculate Advanced Agronomics
         if (weatherData.current && weatherData.current.main) {
@@ -1420,17 +1412,18 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
             const windSpeed = (weatherData.current.wind.speed * 3.6); // km/h
             const rain1h = weatherData.current.rain ? (weatherData.current.rain['1h'] || 0) : 0;
 
-            setVal('rain-display', rain1h);
+            // Update Rain UI
+            document.getElementById('rain-display').innerText = rain1h;
 
-            // Calculate ET Proxy
+            // Calculate ET Proxy (Evapotranspiration based on Temp, Wind, Humidity, and Sun)
             let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uvi * 0.2);
             if (etProxy < 0) etProxy = 0;
-            setVal('et-display', etProxy.toFixed(1));
+            document.getElementById('et-display').innerText = etProxy.toFixed(1);
 
-            // Calculate SMD (Assume 0.35 is Field Capacity)
-            let smd = typeof moisture === 'number' ? (0.35 - moisture) : 0;
-            if (smd < 0) smd = 0;
-            setVal('smd-display', typeof moisture === 'number' ? smd.toFixed(3) : "--");
+            // Calculate SMD (Assume 0.35 is Field Capacity for standard loam)
+            let smd = 0.35 - moisture;
+            if (smd < 0) smd = 0; // If less than 0, soil is saturated
+            document.getElementById('smd-display').innerText = smd.toFixed(3);
 
             // Update text reasoning
             const reasoningEl = document.getElementById('riskReasoning');
@@ -1438,32 +1431,6 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
                 reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
             }
         }
-
-        // 3. Agronomic Fitness Logic
-        const fitnessStatusElement = document.getElementById('fitness-status');
-        if (fitnessStatusElement && typeof temp10cm === 'string' && temp10cm !== "--") {
-            const t10Num = parseFloat(temp10cm);
-            const mNum = parseFloat(moisture);
-
-            if (t10Num < 5) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (mNum > 0.35) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (t10Num >= 10 && t10Num <= 20) {
-                fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
-                fitnessStatusElement.style.color = "#4B7340";
-            } else {
-                fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
-                fitnessStatusElement.style.color = "#E3A430";
-            }
-        }
-
-    } catch (error) {
-        console.error("Error fetching live field data:", error);
-    }
-}
 
         // 3. Agronomic Fitness Logic
         const fitnessStatusElement = document.getElementById('fitness-status');
@@ -1487,57 +1454,6 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
         console.error("Error fetching live field data:", error);
     }
 }
-// Update district change event to refresh live telemetry
-document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
-    currentDistrictId = e.target.value;
-    updateRiskUI(currentDistrictId);
-    const coords = districtCoords[currentDistrictId];
-    if (coords) {
-        updateLiveFieldData(coords.lat, coords.lon);
-    }
-});
 
-// ===================== RUN INIT ===================== //
-async function initApp(){
-    try{
-        const res = await fetch("translations.json");
-        if(res.ok) {
-            const json = await res.json();
-            translationsData = { ...translationsData, ...json };
-        }
-    }catch(e){
-        console.warn("Using fallback translation data.", e);
-    }
-    
-    applyStaticText();
-    renderLeafGrid();
-    populateDistrictSelect();
-    updateRiskUI(currentDistrictId);
-    renderSteps();
-    resetReferUI();
-
-    // Fetch live sensor metrics on start
-    await updateLiveFieldData();
-
-    try{
-        const existing = await loadAllCases();
-        if(existing.length === 0){ await seedDemoCases(); }
-    }catch(err){
-        console.error("Could not initialize case data:", err);
-    }
-
-    await checkAuthOnStart();
-}
-
-// Update district change event to refresh live telemetry
-document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
-    currentDistrictId = e.target.value;
-    updateRiskUI(currentDistrictId);
-    const coords = districtCoords[currentDistrictId];
-    if (coords) {
-        updateLiveFieldData(coords.lat, coords.lon);
-    }
-});
-
-// Single entry point to run the application
-initApp();
+// Run on page load
+updateLiveFieldData();
