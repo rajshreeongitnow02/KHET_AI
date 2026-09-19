@@ -1384,28 +1384,76 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
 
 // Run Init
 initApp();
-async function fetchSoilHealth() {
+async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
     try {
-        const response = await fetch('https://khet-ai-m9n1.onrender.com/soil-health');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const [soilRes, weatherRes] = await Promise.all([
+            fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
+            fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
+        ]);
+
+        const soilData = await soilRes.json();
+        const weatherData = await weatherRes.json();
+
+        // 1. Process Soil Metrics
+        const moisture = soilData.moisture;
+        const tempSurface = (soilData.t0 - 273.15).toFixed(1);
+        const temp10cm = (soilData.t10 - 273.15).toFixed(1);
+        const uvi = soilData.uvi || 0;
+
+        document.getElementById('moisture-display').innerText = moisture;
+        document.getElementById('temp-display').innerText = tempSurface;
+        document.getElementById('temp10-display').innerText = temp10cm;
+        document.getElementById('uvi-display').innerText = uvi;
+
+        // 2. Process Weather & Calculate Advanced Agronomics
+        if (weatherData.current && weatherData.current.main) {
+            const airTemp = (weatherData.current.main.temp - 273.15);
+            const humidity = weatherData.current.main.humidity;
+            const windSpeed = (weatherData.current.wind.speed * 3.6); // km/h
+            const rain1h = weatherData.current.rain ? (weatherData.current.rain['1h'] || 0) : 0;
+
+            // Update Rain UI
+            document.getElementById('rain-display').innerText = rain1h;
+
+            // Calculate ET Proxy (Evapotranspiration based on Temp, Wind, Humidity, and Sun)
+            let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uvi * 0.2);
+            if (etProxy < 0) etProxy = 0;
+            document.getElementById('et-display').innerText = etProxy.toFixed(1);
+
+            // Calculate SMD (Assume 0.35 is Field Capacity for standard loam)
+            let smd = 0.35 - moisture;
+            if (smd < 0) smd = 0; // If less than 0, soil is saturated
+            document.getElementById('smd-display').innerText = smd.toFixed(3);
+
+            // Update text reasoning
+            const reasoningEl = document.getElementById('riskReasoning');
+            if (reasoningEl) {
+                reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
+            }
         }
-        
-        const data = await response.json();
-        
-        // Update Moisture
-        document.getElementById('moisture-display').innerText = data.moisture;
-        
-        // Convert Kelvin to Celsius and round to 1 decimal place
-        const tempCelsius = (data.t0 - 273.15).toFixed(1);
-        document.getElementById('temp-display').innerText = tempCelsius;
-        
+
+        // 3. Agronomic Fitness Logic
+        const fitnessStatusElement = document.getElementById('fitness-status');
+        if (fitnessStatusElement) {
+            if (temp10cm < 5) {
+                fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
+                fitnessStatusElement.style.color = "#ff4d4d";
+            } else if (moisture > 0.35) {
+                fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
+                fitnessStatusElement.style.color = "#ff4d4d";
+            } else if (temp10cm >= 10 && temp10cm <= 20) {
+                fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
+                fitnessStatusElement.style.color = "#4B7340";
+            } else {
+                fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
+                fitnessStatusElement.style.color = "#E3A430";
+            }
+        }
+
     } catch (error) {
-        console.error("Failed to connect to the backend:", error);
-        document.getElementById('moisture-display').innerText = "Error";
-        document.getElementById('temp-display').innerText = "Error";
+        console.error("Error fetching live field data:", error);
     }
 }
 
-fetchSoilHealth();
+// Run on page load
+updateLiveFieldData();
