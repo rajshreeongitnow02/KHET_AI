@@ -1386,7 +1386,6 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
 initApp();
 async function fetchSoilHealth() {
     try {
-        // This calls your Flask server, which holds the API key safely
         const response = await fetch('https://khet-ai-m9n1.onrender.com/soil-health');
         
         if (!response.ok) {
@@ -1394,16 +1393,19 @@ async function fetchSoilHealth() {
         }
         
         const data = await response.json();
-        document.getElementById('moisture-display').innerText = data.moisture;
-        document.getElementById('temp-display').innerText = data.t0;
         
-        // Example: Update an HTML element with the moisture data
-        // document.getElementById('moisture-display').innerText = data.moisture;
+        // Update Moisture
+        document.getElementById('moisture-display').innerText = data.moisture;
+        
+        // Convert Kelvin to Celsius and round to 1 decimal place
+        const tempCelsius = (data.t0 - 273.15).toFixed(1);
+        document.getElementById('temp-display').innerText = tempCelsius;
         
     } catch (error) {
         console.error("Failed to connect to the backend:", error);
+        document.getElementById('moisture-display').innerText = "Error";
+        document.getElementById('temp-display').innerText = "Error";
     }
 }
 
-// Call the function when the page loads
 fetchSoilHealth();
