@@ -1387,7 +1387,7 @@ initApp();
 async function fetchSoilHealth() {
     try {
         // This calls your Flask server, which holds the API key safely
-        const response = await fetch('http://127.0.0.1:5000/soil-health');
+        const response = await fetch('https://khet-ai-m9n1.onrender.com/soil-health');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
