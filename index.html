@@ -183,13 +183,17 @@
     </div>
   </section>
 
-  <section class="section section-dark" id="risk">
+ <section class="section section-dark" id="risk">
     <div class="wrap">
       <div class="section-head">
         <div class="eyebrow eyebrow-dark" style="color: #ffffff;" data-i18n="risk.eyebrow">This week</div>
         <h2 style="color: #ffffff;" data-i18n="risk.title">Field risk forecast</h2>
       </div>
+      
+      <!-- Two-column grid container that keeps the bar chart on the right -->
       <div class="risk-grid">
+        
+        <!-- LEFT COLUMN: District selector, gauge score, risk reasoning, and live sensors -->
         <div>
           <div class="district-select-wrap">
             <label for="districtSelect" style="color: #ffffff;" data-i18n="risk.selectLabel">Choose your district</label>
@@ -209,18 +213,18 @@
               <option value="Yavatmal">Yavatmal</option>
             </select>
           </div>
-         <div class="gauge-row">
+          <div class="gauge-row">
             <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
             <div class="gauge-score" id="gaugeScore" style="color: #ffffff;">—</div>
           </div>
           <span class="risk-chip" id="riskChip">—</span>
           <p class="risk-reasoning" id="riskReasoning" style="color: #f1f1f1;">—</p>
 
-          <!-- Live Sensor Data Panel (Neatly nested inside left column) -->
+          <!-- Live Sensor Data Grid (Nested inside left column) -->
           <div style="margin-top: 24px; padding: 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
             <div style="color: #ffffff; font-weight: 600; margin-bottom: 14px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Live Field Sensors & Indices</div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 14px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 12px; margin-bottom: 14px;">
               <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
                 <div style="font-size: 10px; color: #a1a1aa; text-transform: uppercase;">Soil Moisture</div>
                 <div style="color: #ffffff; font-size: 15px; font-weight: 700; margin-top: 2px;"><span id="moisture-display">--</span></div>
@@ -258,16 +262,15 @@
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: 5-Day Risk Prediction Bar Chart -->
+        <!-- RIGHT COLUMN: 5-Day Risk Prediction Bar Chart (Snaps back to the right) -->
         <div>
           <div class="bars-title" style="color: #ffffff;" data-i18n="risk.next5">Next 5 days risk prediction</div>
           <div class="bar-chart" id="barChart"></div>
         </div>
+
       </div>
     </div>
   </section>
-</div>
-
 <div id="officerView" style="display:none;">
   <section class="section" id="officerDash">
     <div class="wrap">
