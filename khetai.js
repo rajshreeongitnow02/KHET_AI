@@ -1394,8 +1394,8 @@ async function fetchSoilHealth() {
         }
         
         const data = await response.json();
-        console.log("Moisture Level:", data.moisture);
-        console.log("Surface Temp (K):", data.t0);
+        document.getElementById('moisture-display').innerText = data.moisture;
+        document.getElementById('temp-display').innerText = data.t0;
         
         // Example: Update an HTML element with the moisture data
         // document.getElementById('moisture-display').innerText = data.moisture;
