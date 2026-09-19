@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriRakshak — Crop Disease &amp; Pest Scanner (Demo)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Eczar:wght@500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriRakshak — Crop Disease & Pest Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Eczar:wght@500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="lang-en">
 
@@ -20,139 +22,263 @@
         <path d="M20 30V13" stroke="#33512B" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
       <div class="brand-text">
-        <div class="name" data-i18n="nav.brand">AgriRakshak</div>
-        <div class="tag" data-i18n="nav.tagline">Guardian of Crops</div>
+        <div class="name" style="font-size: 26px;" data-i18n="nav.brand">AgriRakshak</div>
+        <div class="tag" style="font-size: 13px;" data-i18n="nav.tagline">Guardian of Crops</div>
       </div>
     </div>
-    <div class="lang-switch" role="group" aria-label="Language">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="hi">हिं</button>
-      <button class="lang-btn" data-lang="mr">मर</button>
+    
+    <div class="header-right-controls" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-left:auto;">
+      <div id="userInfoBar" class="user-info-bar" style="display:none;">
+        <span id="userStatusText"></span>
+        <button class="btn-text-sm" id="logoutBtn">Logout</button>
+      </div>
+      <div class="view-switch" role="group" aria-label="View">
+        <button class="view-btn active" data-view="farmer" data-i18n="nav2.farmer">Farmer</button>
+        <button class="view-btn" data-view="officer" data-i18n="nav2.officer">Extension officer</button>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="hi">हिं</button>
+        <button class="lang-btn" data-lang="mr">मर</button>
+        <button class="lang-btn" data-lang="bn">বাং</button>
+      </div>
     </div>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow" data-i18n="hero.eyebrow">Smart India Hackathon 2026 · PS 26131</div>
-      <h1 data-i18n="hero.title">See the disease
-before it spreads.</h1>
-      <p class="sub" data-i18n="hero.sub">Farmers often spot crop trouble only after the damage is done. AgriRakshak reads a leaf photo, checks the week's weather, and tells you what's wrong — and what to do — before it costs you the harvest.</p>
-      <div class="hero-ctas">
-        <button class="btn btn-primary" id="heroCta" data-i18n="hero.cta">Scan a leaf</button>
-        <button class="btn btn-secondary" id="heroCta2" data-i18n="hero.cta2">How it works</button>
+<div id="farmerView">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow" data-i18n="hero.eyebrow">Smart India Hackathon 2026 · PS 26131</div>
+        <h1 data-i18n="hero.title">See the disease&#10;before it spreads.</h1>
+        <p class="sub" data-i18n="hero.sub">Farmers often spot crop trouble only after the damage is done. AgriRakshak reads a leaf photo, checks the week's weather, and tells you what's wrong — and what to do — before it costs you the harvest.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" id="heroCta" data-i18n="hero.cta">Scan a leaf</button>
+          <button class="btn btn-secondary" id="heroCta2" data-i18n="hero.cta2">How it works</button>
+        </div>
       </div>
-    </div>
-    <div class="hero-art">
-      <svg viewBox="0 0 300 300" width="280" height="280" aria-hidden="true">
-        <circle cx="150" cy="150" r="140" fill="var(--leaf-light)"/>
-        <path d="M150 235C150 235 80 205 80 140C80 100 110 70 150 70C190 70 220 100 220 140C220 205 150 235 150 235Z" fill="var(--leaf)"/>
-        <path d="M150 235V90" stroke="var(--leaf-dark)" stroke-width="3" stroke-linecap="round"/>
-        <path d="M150 130L120 110M150 155L188 130M150 180L118 160" stroke="var(--leaf-dark)" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="112" cy="118" r="6" fill="var(--alert-high)" opacity="0.85"/>
-        <circle cx="185" cy="150" r="5" fill="var(--turmeric)" opacity="0.9"/>
-        <circle cx="130" cy="185" r="4.5" fill="var(--alert-high)" opacity="0.75"/>
-        <line x1="70" y1="80" x2="230" y2="80" stroke="var(--monsoon)" stroke-width="4" stroke-dasharray="1 10" stroke-linecap="round">
-          <animate attributeName="y1" values="70;230;70" dur="3.2s" repeatCount="indefinite"/>
-          <animate attributeName="y2" values="70;230;70" dur="3.2s" repeatCount="indefinite"/>
-        </line>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<section class="section section-alt" id="demo">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow" data-i18n="demo.eyebrow">Try it</div>
-      <h2 data-i18n="demo.title">Leaf health scanner</h2>
-      <p class="sub" style="margin-top:10px;color:var(--ink-soft);" data-i18n="demo.instruction">Pick a leaf below, or drop your own photo.</p>
-      <div class="demo-note" data-i18n="demo.demoNote">Demo mode — results are simulated from sample data, not a live model.</div>
-    </div>
-
-    <div class="leaf-grid" id="leafGrid" role="list"></div>
-
-    <div class="demo-actions">
-      <button class="btn btn-primary btn-disabled" id="scanBtn" disabled data-i18n="demo.scan">Scan for disease</button>
-      <input type="file" id="fileInput" accept="image/*" class="visually-hidden">
-    </div>
-
-    <div class="scan-panel" id="scanPanel" style="display:none;">
-      <div class="scan-bar-track"><div class="scan-bar-fill" id="scanFill"></div></div>
-      <div class="scan-label" id="scanLabel" data-i18n="demo.scanning">Reading the leaf…</div>
-    </div>
-
-    <div class="result-card" id="resultCard" style="display:none;">
-      <div class="stamp" id="stamp">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="46" fill="none" stroke="var(--alert-low)" stroke-width="4"/>
-          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--alert-low)" stroke-width="1.5"/>
-          <path id="stampPath" d="M 15 50 A 35 35 0 1 1 85 50" fill="none"/>
-          <text font-size="9.5" font-weight="700" fill="var(--alert-low)" letter-spacing="1">
-            <textPath id="stampText" href="#stampPath" startOffset="50%" text-anchor="middle" data-i18n="demo.stamp">VERIFIED</textPath>
-          </text>
-          <path d="M35 52l10 10 20-24" stroke="var(--alert-low)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="hero-art">
+        <svg viewBox="0 0 300 300" width="280" height="280" aria-hidden="true">
+          <circle cx="150" cy="150" r="140" fill="var(--leaf-light)"/>
+          <path d="M150 235C150 235 80 205 80 140C80 100 110 70 150 70C190 70 220 100 220 140C220 205 150 235 150 235Z" fill="var(--leaf)"/>
+          <path d="M150 235V90" stroke="var(--leaf-dark)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M150 130L120 110M150 155L188 130M150 180L118 160" stroke="var(--leaf-dark)" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="112" cy="118" r="6" fill="var(--alert-high)" opacity="0.85"/>
+          <circle cx="185" cy="150" r="5" fill="var(--turmeric)" opacity="0.9"/>
+          <circle cx="130" cy="185" r="4.5" fill="var(--alert-high)" opacity="0.75"/>
+          <line x1="70" y1="80" x2="230" y2="80" stroke="var(--monsoon)" stroke-width="4" stroke-dasharray="1 10" stroke-linecap="round">
+            <animate attributeName="y1" values="70;230;70" dur="3.2s" repeatCount="indefinite"/>
+            <animate attributeName="y2" values="70;230;70" dur="3.2s" repeatCount="indefinite"/>
+          </line>
         </svg>
       </div>
-      <div class="result-top">
+    </div>
+  </section>
+
+  <section class="section section-alt" id="demo">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="demo.eyebrow">Try it</div>
+        <h2 data-i18n="demo.title">Leaf health scanner</h2>
+        <p class="sub" style="margin-top:10px;color:var(--ink-soft);" data-i18n="demo.instruction">Pick a leaf below, or drop your own photo.</p>
+        <div class="demo-note" data-i18n="demo.demoNote">Demo mode — results are simulated from sample data, not a live model.</div>
+      </div>
+
+      <div class="leaf-grid" id="leafGrid" role="list"></div>
+      <div class="leaf-check-msg" id="leafCheckMsg" role="status" aria-live="polite"></div>
+
+      <div class="demo-actions">
+        <button class="btn btn-primary btn-disabled" id="scanBtn" disabled data-i18n="demo.scan">Scan for disease</button>
+        <input type="file" id="fileInput" accept="image/*" class="visually-hidden">
+      </div>
+
+      <div class="scan-panel" id="scanPanel" style="display:none;">
+        <div class="scan-bar-track"><div class="scan-bar-fill" id="scanFill"></div></div>
+        <div class="scan-label" id="scanLabel" data-i18n="demo.scanning">Reading the leaf…</div>
+      </div>
+
+      <div class="result-card" id="resultCard" style="display:none;">
+        <div class="stamp" id="stamp">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="var(--alert-low)" stroke-width="4"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="var(--alert-low)" stroke-width="1.5"/>
+            <path id="stampPath" d="M 15 50 A 35 35 0 1 1 85 50" fill="none"/>
+            <text font-size="9.5" font-weight="700" fill="var(--alert-low)" letter-spacing="1">
+              <textPath id="stampText" href="#stampPath" startOffset="50%" text-anchor="middle" data-i18n="demo.stamp">VERIFIED</textPath>
+            </text>
+            <path d="M35 52l10 10 20-24" stroke="var(--alert-low)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="result-top">
+          <div>
+            <div class="result-eyebrow" data-i18n="demo.resultTitle">Diagnosis</div>
+            <div class="result-name" id="resultName">—</div>
+            <div class="ai-status-pill ai-status-pending" id="aiStatusBadge">—</div>
+          </div>
+          <div class="severity-badge" id="severityBadge">—</div>
+        </div>
+        <div class="confidence-row">
+          <div class="confidence-label"><span data-i18n="demo.confidence">Confidence</span><span id="confidenceValue">—</span></div>
+          <div class="confidence-track"><div class="confidence-fill" id="confidenceFill" style="width:0%;"></div></div>
+        </div>
+        <p class="ai-note" id="aiNote" style="display:none;"></p>
+        <div class="advisory">
+          <div class="advisory-title" data-i18n="demo.advisoryTitle">What to do</div>
+          <p class="advisory-text" id="advisoryText">—</p>
+        </div>
+        <div class="result-actions">
+          <div class="refer-row">
+            <label for="referDistrict" data-i18n="risk.selectLabel">Choose your district</label>
+            <select id="referDistrict"></select>
+          </div>
+          <div class="report-attachments-section">
+            <div class="attach-title">Attach Complete Field Report</div>
+            <div class="attachment-grid">
+              <div class="attach-box" id="soilAttachBox" onclick="document.getElementById('soilInput').click()">
+                <input type="file" id="soilInput" accept="image/*" class="visually-hidden">
+                <div class="attach-preview" id="soilPreview">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                  <span>Soil Image</span>
+                </div>
+              </div>
+              <div class="attach-box" id="fruitAttachBox" onclick="document.getElementById('fruitInput').click()">
+                <input type="file" id="fruitInput" accept="image/*" class="visually-hidden">
+                <div class="attach-preview" id="fruitPreview">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                  <span>Fruit/Veg Image</span>
+                </div>
+              </div>
+            </div>
+            <div class="notes-wrap">
+              <label for="farmerNotes">Your comment</label>
+              <div class="notes-input-group">
+                <textarea id="farmerNotes" placeholder="Describe soil moisture, irrigation frequency, or fruit symptoms..." rows="2"></textarea>
+    
+                <!-- Microphone Button -->
+                <button id="recordBtn" class="btn-icon" type="button" title="Record Voice Note (1 min max)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/>
+                    <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Audio Playback & Delete Preview -->
+              <div id="audioPreviewWrap" class="audio-preview hidden">
+                <audio id="audioPlayback" controls></audio>
+                <button id="removeAudioBtn" class="btn-icon delete-btn" type="button" title="Remove Audio">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+             </div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="referBtn" data-i18n="demo.talkToOfficer">Send to extension officer</button>
+          <div class="refer-status" id="referStatus"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="risk">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow eyebrow-dark" style="color: #ffffff;" data-i18n="risk.eyebrow">This week</div>
+        <h2 style="color: #ffffff;" data-i18n="risk.title">Field risk forecast</h2>
+      </div>
+      <div class="risk-grid">
         <div>
-          <div class="result-eyebrow" data-i18n="demo.resultTitle">Diagnosis</div>
-          <div class="result-name" id="resultName">—</div>
+          <div class="district-select-wrap">
+            <label for="districtSelect" style="color: #ffffff;" data-i18n="risk.selectLabel">Choose your district</label>
+            <select id="districtSelect">
+              <option value="Ahilyanagar">Ahilyanagar</option>
+              <option value="Akola">Akola</option>
+              <option value="Amravati">Amravati</option>
+              <option value="Beed">Beed</option>
+              <option value="Bhandara">Bhandara</option>
+              <option value="Kolhapur">Kolhapur</option>
+              <option value="Nagpur">Nagpur</option>
+              <option value="Nashik">Nashik</option>
+              <option value="Parbhani">Parbhani</option>
+              <option value="Pune" selected>Pune</option>
+              <option value="Satara">Satara</option>
+              <option value="Wardha">Wardha</option>
+              <option value="Yavatmal">Yavatmal</option>
+            </select>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
+            <div class="gauge-score" id="gaugeScore" style="color: #ffffff;">—</div>
+          </div>
+          <span class="risk-chip" id="riskChip">—</span>
+          <p class="risk-reasoning" id="riskReasoning" style="color: #f1f1f1;">—</p>
         </div>
-        <div class="severity-badge" id="severityBadge">—</div>
-      </div>
-      <div class="confidence-row">
-        <div class="confidence-label"><span data-i18n="demo.confidence">Confidence</span><span id="confidenceValue">—</span></div>
-        <div class="confidence-track"><div class="confidence-fill" id="confidenceFill" style="width:0%;"></div></div>
-      </div>
-      <div class="advisory">
-        <div class="advisory-title" data-i18n="demo.advisoryTitle">What to do</div>
-        <p class="advisory-text" id="advisoryText">—</p>
-      </div>
-      <div class="result-actions">
-        <button class="btn btn-secondary" data-i18n="demo.talkToOfficer">Send to extension officer</button>
+        <div>
+          <div class="bars-title" style="color: #ffffff;" data-i18n="risk.next5">Next 5 days risk prediction</div>
+          <div class="bar-chart" id="barChart"></div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section section" id="risk">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow eyebrow" data-i18n="risk.eyebrow">This week</div>
-      <h2 data-i18n="risk.title">Field risk forecast</h2>
-    </div>
-    <div class="risk-grid">
-      <div>
-        <div class="district-select-wrap">
-          <label for="districtSelect" data-i18n="risk.selectLabel">Choose your district</label>
-          <select id="districtSelect"></select>
-        </div>
-        <div class="gauge-row">
-          <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
-          <div class="gauge-score" id="gaugeScore">—</div>
-        </div>
-        <span class="risk-chip" id="riskChip">—</span>
-        <p class="risk-reasoning" id="riskReasoning">—</p>
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="demo.eyebrow2">How it works</div>
+        <h2 data-i18n="how.title">Four steps, in the field</h2>
       </div>
-      <div>
-        <div class="bars-title" data-i18n="risk.next5">Next 5 days</div>
-        <div class="bar-chart" id="barChart"></div>
-      </div>
+      <div class="steps" id="stepsGrid"></div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section" id="how">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow" data-i18n="demo.eyebrow2">How it works</div>
-      <h2 data-i18n="how.title">Four steps, in the field</h2>
+</div>
+
+<div id="officerView" style="display:none;">
+  <section class="section" id="officerDash">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="officer.eyebrow">Extension officer</div>
+        <h2 data-i18n="officer.title">Case review dashboard</h2>
+        <p class="sub" style="margin-top:10px;color:var(--ink-soft);" data-i18n="officer.subtitle">Review farmer-submitted cases, confirm diagnoses, and track follow-up.</p>
+        <div class="demo-note" data-i18n="officer.demoNote">Demo data — shared live with everyone using this app right now.</div>
+      </div>
+
+      <div class="officer-stats">
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label" data-i18n="officer.statTotal">Total cases</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label" data-i18n="officer.statPending">Pending review</div></div>
+        <div class="stat-card"><div class="stat-num" id="statConfirmed">—</div><div class="stat-label" data-i18n="officer.statConfirmed">Confirmed</div></div>
+        <div class="stat-card"><div class="stat-num" id="statTopIssue">—</div><div class="stat-label" data-i18n="officer.statTopIssue">Most reported issue</div></div>
+      </div>
+
+      <div class="map-hotspot-container">
+        <div class="eyebrow" data-i18n="officer.hotspotEyebrow">Geospatial Intelligence</div>
+        <h3 style="font-size: 17px; margin-bottom: 12px;" data-i18n="officer.hotspotTitle">Live Disease Hotspots & Cluster Mapping</h3>
+        <div id="hotspotMap" style="width: 100%; height: 340px; border-radius: 12px; border: 1px solid var(--line); position: relative; z-index: 1;"></div>
+      </div>
+
+      <div class="officer-controls">
+        <div class="filter-wrap">
+          <label for="officerFilter" data-i18n="officer.filterLabel">Filter by status</label>
+          <select id="officerFilter">
+            <option value="all" data-i18n="officer.filterAll">All statuses</option>
+            <option value="pending" data-i18n="officer.filterPending">Pending</option>
+            <option value="confirmed" data-i18n="officer.filterConfirmed">Confirmed</option>
+            <option value="resolved" data-i18n="officer.filterResolved">Resolved</option>
+          </select>
+        </div>
+       <button id="toggleHistoryBtn" class="btn btn-secondary" data-i18n="officer.showHistory">Show History/Archived</button>
+       <button id="clearResolvedBtn" class="btn btn-secondary"data-i18n="officer.clearResolved">Clear Resolved Cases</button>
+      </div>
+
+      <div class="case-grid" id="caseList">
+        <div class="officer-loading">Loading cases…</div>
+      </div>
     </div>
-    <div class="steps" id="stepsGrid"></div>
-  </div>
-</section>
+  </section>
+</div>
 
 <footer class="site-footer">
   <div class="wrap">
@@ -166,6 +292,43 @@ before it spreads.</h1>
   </div>
 </footer>
 
-<script src="script.js"></script>
+<div class="auth-modal-overlay" id="farmerLoginModal" style="display:none;">
+  <div class="auth-card">
+    <h3>Farmer Quick Access</h3>
+    <p class="auth-sub">Enter your 10-digit mobile number to access your crop scan history and advisories.</p>
+    <form id="farmerLoginForm">
+      <div class="form-group">
+        <label for="farmerPhone">Phone Number</label>
+        <div class="phone-input-wrap">
+          <span>+91</span>
+          <input type="tel" id="farmerPhone" placeholder="9876543210" pattern="[0-9]{10}" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Continue to App</button>
+    </form>
+  </div>
+</div>
+
+<div class="auth-modal-overlay" id="officerLoginModal" style="display:none;">
+  <div class="auth-card">
+    <h3>Extension Officer Login</h3>
+    <p class="auth-sub">Enter your official credentials to access the disease monitoring portal.</p>
+    <form id="officerLoginForm">
+      <div class="form-group">
+        <label for="officerId">Officer ID / Mobile</label>
+        <input type="text" id="officerId" placeholder="e.g. MH-OFF-2026 or 9876543210" required>
+      </div>
+      <div class="form-group">
+        <label for="officerPass">Security PIN / Password</label>
+        <input type="password" id="officerPass" placeholder="••••" required>
+      </div>
+      <div id="officerAuthError" class="auth-error" style="display:none;">Invalid Officer ID or Password (Demo PIN: 1234)</div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Login to Dashboard</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="cancelOfficerLogin" style="width:100%; margin-top:8px;">Back to Farmer View</button>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
