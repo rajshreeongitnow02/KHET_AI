@@ -1,4 +1,56 @@
-/* ===================== DATA ===================== */
+/* ===================== CONSTANTS & INITIAL DATA ===================== */
+
+const API_BASE_URL = typeof window.API_BASE_URL !== "undefined" ? window.API_BASE_URL : "/api";
+
+// Safe StorageAdapter fallback wrapper for localStorage
+const StorageAdapter = {
+  async get(key) {
+    try {
+      if (typeof window.StorageAdapter !== "undefined" && window.StorageAdapter !== this) {
+        return await window.StorageAdapter.get(key);
+      }
+      return localStorage.getItem(key);
+    } catch (e) {
+      return localStorage.getItem(key);
+    }
+  },
+  async set(key, val) {
+    try {
+      if (typeof window.StorageAdapter !== "undefined" && window.StorageAdapter !== this) {
+        return await window.StorageAdapter.set(key, val);
+      }
+      localStorage.setItem(key, val);
+    } catch (e) {
+      localStorage.setItem(key, val);
+    }
+  },
+  async delete(key) {
+    try {
+      if (typeof window.StorageAdapter !== "undefined" && window.StorageAdapter !== this) {
+        return await window.StorageAdapter.delete(key);
+      }
+      localStorage.removeItem(key);
+    } catch (e) {
+      localStorage.removeItem(key);
+    }
+  },
+  async list(prefix) {
+    try {
+      if (typeof window.StorageAdapter !== "undefined" && window.StorageAdapter !== this) {
+        return await window.StorageAdapter.list(prefix);
+      }
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix)) keys.push(k);
+      }
+      return keys;
+    } catch (e) {
+      return [];
+    }
+  }
+};
+
 const LEAVES = [
   {id:"healthy", severity:"low", confidence:97, color:"#4B7340", spots:0},
   {id:"blight", severity:"high", confidence:89, color:"#7A5C33", spots:5},
@@ -7,144 +59,478 @@ const LEAVES = [
   {id:"nitrogen", severity:"low", confidence:78, color:"#B7B24A", spots:0}
 ];
 
-const DISTRICTS = [
-  {id:"pune", risk:"medium", score:58, values:[40,55,60,58,65]},
-  {id:"nashik", risk:"high", score:73, values:[60,70,75,80,78]},
-  {id:"sambhajinagar", risk:"low", score:21, values:[20,22,25,20,18]},
-  {id:"kolhapur", risk:"high", score:75, values:[65,72,80,77,82]},
-  {id:"amravati", risk:"medium", score:45, values:[35,42,50,48,52]},
-  {id:"nagpur", risk:"low", score:18, values:[15,18,20,17,19]}
-];
+// Coordinates for all 13 Maharashtra Agricultural Districts
+const districtCoords = {
+  "Ahilyanagar": { lat: 19.0946, lon: 74.7384 },
+  "Akola": { lat: 20.7002, lon: 77.0082 },
+  "Amravati": { lat: 20.9374, lon: 77.7796 },
+  "Beed": { lat: 18.9901, lon: 75.7600 },
+  "Bhandara": { lat: 21.1682, lon: 79.6489 },
+  "Kolhapur": { lat: 16.7050, lon: 74.2433 },
+  "Nagpur": { lat: 21.1458, lon: 79.0882 },
+  "Nashik": { lat: 20.0059, lon: 73.7898 },
+  "Parbhani": { lat: 19.2686, lon: 76.7709 },
+  "Pune": { lat: 18.5204, lon: 73.8567 },
+  "Satara": { lat: 17.6805, lon: 74.0183 },
+  "Wardha": { lat: 20.7453, lon: 78.6022 },
+  "Yavatmal": { lat: 20.3888, lon: 78.1204 }
+};
 
-const translations = {
-  en:{
-    nav:{brand:"AgriRakshak", tagline:"Guardian of Crops"},
-    hero:{eyebrow:"Smart India Hackathon 2026 · PS 26131", title:"See the disease\nbefore it spreads.",
-      sub:"Farmers often spot crop trouble only after the damage is done. AgriRakshak reads a leaf photo, checks the week's weather, and tells you what's wrong — and what to do — before it costs you the harvest.",
-      cta:"Scan a leaf", cta2:"How it works"},
-    demo:{eyebrow:"Try it", eyebrow2:"How it works", title:"Leaf health scanner",
-      instruction:"Pick a leaf below, or drop your own photo.", upload:"Upload your photo", uploaded:"Your photo",
-      scan:"Scan for disease", scanning:"Reading the leaf…",
-      demoNote:"Demo mode — results are simulated from sample data, not a live model.",
-      resultTitle:"Diagnosis", confidence:"Confidence", severity:"Severity",
-      advisoryTitle:"What to do", talkToOfficer:"Send to extension officer", stamp:"VERIFIED",
-      severityLabels:{low:"Low", medium:"Medium", high:"High"}},
-    results:{
-      healthy:{name:"Healthy leaf", advisory:"No action needed. Keep monitoring weekly and maintain current watering and spacing."},
-      blight:{name:"Early leaf blight", advisory:"Remove and destroy affected leaves. Apply a copper-based fungicide within 48 hours and avoid overhead watering."},
-      mildew:{name:"Powdery mildew", advisory:"Improve airflow by spacing plants further apart. Apply a sulfur-based spray in the evening; re-check in 5 days."},
-      aphid:{name:"Aphid infestation", advisory:"Introduce ladybirds or spray a neem oil solution every 3 days. Avoid broad-spectrum pesticide unless spread continues."},
-      nitrogen:{name:"Nitrogen deficiency", advisory:"Yellowing starts from older leaves first. Apply a nitrogen-rich top dressing and recheck soil in 2 weeks."}
+// Default Fallback Translations Data
+let translationsData = {
+  "en": {
+    "nav": { "brand": "AgriRakshak", "tagline": "Guardian of Crops" },
+    "nav2": { "farmer": "Farmer", "officer": "Extension officer" },
+    "hero": {
+      "eyebrow": "Smart India Hackathon 2026 · PS 26131",
+      "title": "See the disease\nbefore it spreads.",
+      "sub": "Farmers often spot crop trouble only after the damage is done. AgriRakshak reads a leaf photo, checks the week's weather, and tells you what's wrong — and what to do — before it costs you the harvest.",
+      "cta": "Scan a leaf",
+      "cta2": "How it works"
     },
-    risk:{eyebrow:"This week", title:"Field risk forecast", selectLabel:"Choose your district", next5:"Next 5 days"},
-    districts:{
-      pune:{name:"Pune", reasoning:"Humidity has stayed above 70% for three days running — fungal risk is climbing."},
-      nashik:{name:"Nashik", reasoning:"Recent rainfall plus warm nights favour blight — inspect grape and onion plots this week."},
-      sambhajinagar:{name:"Chhatrapati Sambhajinagar", reasoning:"Dry, clear conditions expected — disease pressure is low, but watch for aphids on cotton."},
-      kolhapur:{name:"Kolhapur", reasoning:"Heavy monsoon carryover keeps fields waterlogged — root rot risk is elevated."},
-      amravati:{name:"Amravati", reasoning:"Fluctuating temperatures are stressing cotton — bollworm activity is likely to rise."},
-      nagpur:{name:"Nagpur", reasoning:"Stable, dry weather this week — a good window for preventive spraying."}
+    "demo": {
+      "eyebrow": "Try it",
+      "eyebrow2": "How it works",
+      "title": "Leaf health scanner",
+      "instruction": "Pick a leaf below, or drop your own photo.",
+      "demoNote": "Demo mode — results are simulated from sample data, not a live model.",
+      "upload": "Upload",
+      "checking": "Checking image...",
+      "analyzing": "Analyzing diagnosis...",
+      "notLeaf": "Invalid leaf image",
+      "uploaded": "Uploaded",
+      "scan": "Scan for disease",
+      "scanning": "Reading the leaf…",
+      "resultTitle": "Diagnosis",
+      "confidence": "Confidence",
+      "advisoryTitle": "What to do",
+      "talkToOfficer": "Send to extension officer",
+      "referSending": "Sending…",
+      "referSentPrefix": "Sent — case",
+      "referResolvedMsg": "Case resolved.",
+      "referConfirmedMsg": "Verified by extension officer.",
+      "verifiedBadge": "Verified",
+      "referPending": "Pending officer review.",
+      "aiBadge": "AI Screening",
+      "stamp": "VERIFIED",
+      "severityLabels": { "low": "Low Risk", "medium": "Moderate Risk", "high": "High Risk" },
+      "aiReasons": {
+        "healthy": "Leaf foliage displays consistent green pigmentation with healthy chlorophyll distribution.",
+        "blight": "Distinct brown necrotic lesions detected across leaf area, typical of fungal blight.",
+        "mildew": "White powder-like fungal coating observed on leaf surface.",
+        "aphid": "Dark clusters and honeydew texture variations identified, indicating aphid colony.",
+        "nitrogen": "Chlorotic yellowing observed along vein margins, indicating nitrogen deficiency."
+      }
     },
-    how:{title:"Four steps, in the field", steps:[
-      {title:"Capture", body:"Take a photo of the affected leaf, or use a shared pest-trap reading from your extension worker."},
-      {title:"Diagnose", body:"AgriRakshak matches the image and local weather against known disease and pest patterns."},
-      {title:"Advisory", body:"You get a plain-language recommendation in your language — what it is, how bad, what to do."},
-      {title:"Follow-up", body:"Confirmed cases feed a district map so officials can act before an outbreak spreads."}
-    ]},
-    footer:{line1:"Built for Smart India Hackathon 2026 — Problem Statement 26131",
-      line2:"Government of Maharashtra · Maharashtra State Innovation Society",
-      disclaimer:"This is a concept demo. Diagnoses shown are simulated, not agronomic or medical advice."}
-  },
-  hi:{
-    nav:{brand:"एग्रीरक्षक", tagline:"फसलों का रक्षक"},
-    hero:{eyebrow:"स्मार्ट इंडिया हैकाथॉन 2026 · समस्या 26131", title:"बीमारी फैलने से पहले\nपहचानें।",
-      sub:"किसान को अक्सर फसल की समस्या तब पता चलती है जब नुकसान हो चुका होता है। एग्रीरक्षक पत्ती की फोटो और हफ्ते के मौसम को देखकर बताता है कि क्या गड़बड़ है — और नुकसान से पहले क्या करना है।",
-      cta:"पत्ती स्कैन करें", cta2:"यह कैसे काम करता है"},
-    demo:{eyebrow:"आज़माएं", eyebrow2:"यह कैसे काम करता है", title:"पत्ती स्वास्थ्य स्कैनर",
-      instruction:"नीचे से एक पत्ती चुनें, या अपनी फोटो डालें।", upload:"अपनी फोटो अपलोड करें", uploaded:"आपकी फोटो",
-      scan:"बीमारी जांचें", scanning:"पत्ती पढ़ी जा रही है…",
-      demoNote:"डेमो मोड — परिणाम नमूना डेटा से बनाए गए हैं, यह लाइव मॉडल नहीं है।",
-      resultTitle:"निदान", confidence:"विश्वास स्तर", severity:"गंभीरता",
-      advisoryTitle:"क्या करें", talkToOfficer:"विस्तार अधिकारी को भेजें", stamp:"सत्यापित",
-      severityLabels:{low:"कम", medium:"मध्यम", high:"अधिक"}},
-    results:{
-      healthy:{name:"स्वस्थ पत्ती", advisory:"कोई कार्रवाई ज़रूरी नहीं। हर हफ्ते निगरानी जारी रखें और सिंचाई व दूरी वैसी ही रखें।"},
-      blight:{name:"आरंभिक पत्ती झुलसा रोग", advisory:"प्रभावित पत्तियों को हटाकर नष्ट करें। 48 घंटे में कॉपर आधारित फफूंदनाशक लगाएं और ऊपर से पानी देने से बचें।"},
-      mildew:{name:"चूर्णिल आसिता (पाउडरी मिल्ड्यू)", advisory:"पौधों के बीच अधिक दूरी रखकर हवा का आवागमन बढ़ाएं। शाम को सल्फर आधारित स्प्रे करें; 5 दिन बाद फिर जांचें।"},
-      aphid:{name:"माहू कीट प्रकोप", advisory:"लेडीबर्ड कीट छोड़ें या हर 3 दिन नीम तेल घोल का छिड़काव करें। फैलाव जारी रहने तक ही व्यापक कीटनाशक का उपयोग करें।"},
-      nitrogen:{name:"नाइट्रोजन की कमी", advisory:"पुराने पत्तों से पीलापन शुरू होता है। नाइट्रोजन युक्त खाद डालें और 2 हफ्ते बाद मिट्टी की जांच करें।"}
+    "results": {
+      "healthy": { "name": "Healthy Leaf", "advisory": "No action needed. Keep monitoring weekly and maintain regular irrigation schedule." },
+      "blight": { "name": "Fungal Blight", "advisory": "Apply copper-based fungicide. Prune affected lower leaves and avoid overhead watering." },
+      "mildew": { "name": "Powdery Mildew", "advisory": "Spray neem oil solution or sulfur fungicide in early morning. Ensure good air circulation." },
+      "aphid": { "name": "Aphid Infestation", "advisory": "Apply insecticidal soap or neem oil spray on leaf undersides." },
+      "nitrogen": { "name": "Nitrogen Deficiency", "advisory": "Apply balanced NPK or nitrogen-rich organic fertilizer near root zone." }
     },
-    risk:{eyebrow:"इस हफ्ते", title:"खेत जोखिम पूर्वानुमान", selectLabel:"अपना जिला चुनें", next5:"अगले 5 दिन"},
-    districts:{
-      pune:{name:"पुणे", reasoning:"तीन दिनों से नमी 70% से ऊपर है — फफूंद जनित जोखिम बढ़ रहा है।"},
-      nashik:{name:"नासिक", reasoning:"हाल की बारिश और गर्म रातें झुलसा रोग को बढ़ावा दे रही हैं — अंगूर और प्याज़ के खेतों की जांच करें।"},
-      sambhajinagar:{name:"छत्रपती संभाजीनगर", reasoning:"सूखा, साफ मौसम रहेगा — बीमारी का खतरा कम है, लेकिन कपास पर माहू पर नज़र रखें।"},
-      kolhapur:{name:"कोल्हापुर", reasoning:"मानसून का असर अभी बना है, खेतों में पानी भरा है — जड़ सड़न का खतरा बढ़ा है।"},
-      amravati:{name:"अमरावती", reasoning:"बदलता तापमान कपास पर असर डाल रहा है — बॉलवर्म की सक्रियता बढ़ सकती है।"},
-      nagpur:{name:"नागपुर", reasoning:"इस हफ्ते मौसम स्थिर और सूखा रहेगा — बचावी छिड़काव के लिए अच्छा समय।"}
+    "districts": {
+      "ahilyanagar": { "name": "Ahilyanagar" }, "akola": { "name": "Akola" }, "amravati": { "name": "Amravati" },
+      "beed": { "name": "Beed" }, "bhandara": { "name": "Bhandara" }, "kolhapur": { "name": "Kolhapur" },
+      "nagpur": { "name": "Nagpur" }, "nashik": { "name": "Nashik" }, "parbhani": { "name": "Parbhani" },
+      "pune": { "name": "Pune" }, "satara": { "name": "Satara" }, "wardha": { "name": "Wardha" }, "yavatmal": { "name": "Yavatmal" }
     },
-    how:{title:"चार चरण, खेत में", steps:[
-      {title:"फोटो लें", body:"प्रभावित पत्ती की फोटो लें, या अपने विस्तार कार्यकर्ता से कीट-ट्रैप की रीडिंग लें।"},
-      {title:"निदान करें", body:"एग्रीरक्षक फोटो और स्थानीय मौसम की तुलना जानी-मानी बीमारी और कीट पैटर्न से करता है।"},
-      {title:"सलाह पाएं", body:"आपको अपनी भाषा में सीधी सलाह मिलती है — समस्या क्या है, कितनी गंभीर है, और क्या करना है।"},
-      {title:"फॉलो-अप", body:"पुष्ट मामले जिला मानचित्र में जुड़ते हैं जिससे अधिकारी फैलाव से पहले कार्रवाई कर सकें।"}
-    ]},
-    footer:{line1:"स्मार्ट इंडिया हैकाथॉन 2026 के लिए निर्मित — समस्या विवरण 26131",
-      line2:"महाराष्ट्र सरकार · महाराष्ट्र राज्य नवोन्मेष सोसायटी",
-      disclaimer:"यह एक अवधारणा डेमो है। दिखाए गए निदान अनुरूपित हैं, कृषि या चिकित्सा सलाह नहीं।"}
-  },
-  mr:{
-    nav:{brand:"अ‍ॅग्रीरक्षक", tagline:"पिकांचा रक्षक"},
-    hero:{eyebrow:"स्मार्ट इंडिया हॅकाथॉन 2026 · समस्या 26131", title:"रोग पसरण्याआधी\nओळखा.",
-      sub:"नुकसान झाल्यावरच शेतकऱ्यांना पिकातील समस्या लक्षात येते. अ‍ॅग्रीरक्षक पानाचा फोटो आणि आठवड्याचे हवामान पाहून सांगतो काय बिघडलंय — आणि नुकसान होण्याआधी काय करायचं.",
-      cta:"पान स्कॅन करा", cta2:"हे कसं काम करतं"},
-    demo:{eyebrow:"वापरून पहा", eyebrow2:"हे कसं काम करतं", title:"पान आरोग्य स्कॅनर",
-      instruction:"खालून एक पान निवडा, किंवा तुमचा फोटो टाका.", upload:"तुमचा फोटो अपलोड करा", uploaded:"तुमचा फोटो",
-      scan:"रोग तपासा", scanning:"पान वाचत आहे…",
-      demoNote:"डेमो मोड — निकाल नमुना डेटावरून तयार केले आहेत, हे लाइव्ह मॉडेल नाही.",
-      resultTitle:"निदान", confidence:"विश्वासार्हता", severity:"तीव्रता",
-      advisoryTitle:"काय करावे", talkToOfficer:"विस्तार अधिकाऱ्याला पाठवा", stamp:"तपासणी पूर्ण",
-      severityLabels:{low:"कमी", medium:"मध्यम", high:"जास्त"}},
-    results:{
-      healthy:{name:"निरोगी पान", advisory:"काहीही करण्याची गरज नाही. दर आठवड्याला निरीक्षण सुरू ठेवा आणि पाणी व अंतर तसंच ठेवा."},
-      blight:{name:"प्रारंभिक पानांवरील करपा रोग", advisory:"बाधित पाने काढून नष्ट करा. 48 तासांत कॉपरयुक्त बुरशीनाशक फवारा आणि वरून पाणी देणं टाळा."},
-      mildew:{name:"भुरी रोग", advisory:"रोपांमध्ये अधिक अंतर ठेवून हवा खेळती राहू द्या. संध्याकाळी गंधकयुक्त फवारणी करा; 5 दिवसांनी पुन्हा तपासा."},
-      aphid:{name:"मावा कीड प्रादुर्भाव", advisory:"लेडीबर्ड कीटक सोडा किंवा दर 3 दिवसांनी निंबोळी तेल फवारा. प्रसार सुरूच राहिला तरच व्यापक कीटकनाशक वापरा."},
-      nitrogen:{name:"नत्राची कमतरता", advisory:"जुन्या पानांपासून पिवळेपणा सुरू होतो. नत्रयुक्त खत द्या आणि 2 आठवड्यांनी मातीची तपासणी करा."}
+    "risk": { "eyebrow": "This week", "title": "Field risk forecast", "selectLabel": "Choose your district", "next5": "Next 5 days risk prediction" },
+    "how": {
+      "title": "Four steps, in the field",
+      "steps": [
+        { "title": "Take or Upload Photo", "body": "Snap a clear picture of the symptomatic plant leaf or upload an existing image." },
+        { "title": "Instant AI Analysis", "body": "Our image classifier scans for fungal, bacterial, and pest visual patterns." },
+        { "title": "Weather & Risk Check", "body": "Live Open-Meteo climate data evaluates localized humidity and rainfall risk factors." },
+        { "title": "Connect to Extension Officer", "body": "Submit case reports directly to regional extension officers for field-level verification." }
+      ]
     },
-    risk:{eyebrow:"या आठवड्यात", title:"शेत जोखीम अंदाज", selectLabel:"तुमचा जिल्हा निवडा", next5:"पुढील 5 दिवस"},
-    districts:{
-      pune:{name:"पुणे", reasoning:"तीन दिवसांपासून आर्द्रता 70% पेक्षा जास्त आहे — बुरशीजन्य धोका वाढतोय."},
-      nashik:{name:"नाशिक", reasoning:"अलीकडचा पाऊस आणि उष्ण रात्री करपा रोगाला पोषक — द्राक्ष व कांदा पिकांची तपासणी करा."},
-      sambhajinagar:{name:"छत्रपती संभाजीनगर", reasoning:"कोरडे, स्वच्छ हवामान राहील — रोगाचा धोका कमी आहे, पण कापसावरील मावा कीडीवर लक्ष ठेवा."},
-      kolhapur:{name:"कोल्हापूर", reasoning:"मान्सूनचा प्रभाव अजून टिकून आहे, शेतात पाणी साचलंय — मूळकुज होण्याचा धोका वाढला आहे."},
-      amravati:{name:"अमरावती", reasoning:"बदलते तापमान कापसावर परिणाम करत आहे — बोंडअळीची सक्रियता वाढू शकते."},
-      nagpur:{name:"नागपूर", reasoning:"या आठवड्यात हवामान स्थिर आणि कोरडे राहील — प्रतिबंधात्मक फवारणीसाठी चांगली वेळ."}
+    "officer": {
+      "eyebrow": "Extension officer", "title": "Case review dashboard", "subtitle": "Review farmer-submitted cases, confirm diagnoses, and track follow-up.",
+      "demoNote": "Demo data — shared live with everyone using this app right now.", "statTotal": "Total cases",
+      "statPending": "Pending review", "statConfirmed": "Confirmed", "statTopIssue": "Most reported issue",
+      "hotspotEyebrow": "Geospatial Intelligence", "hotspotTitle": "Live Disease Hotspots & Cluster Mapping",
+      "filterLabel": "Filter by status", "filterAll": "All statuses", "filterPending": "Pending",
+      "filterConfirmed": "Confirmed", "filterResolved": "Resolved", "confirmBtn": "Confirm", "resolveBtn": "Resolve",
+      "labBtn": "Send to Lab", "followupBtn": "Set Follow-up", "submitted": "Submitted", "emptyState": "No cases found.",
+      "showHistory": "Show history/archived",
+      "clearResolved": "Clear resolved cases"
     },
-    how:{title:"चार टप्पे, शेतात", steps:[
-      {title:"फोटो घ्या", body:"बाधित पानाचा फोटो घ्या, किंवा तुमच्या विस्तार कार्यकर्त्याकडून कीड-सापळ्याचं वाचन घ्या."},
-      {title:"निदान करा", body:"अ‍ॅग्रीरक्षक फोटो आणि स्थानिक हवामानाची तुलना ज्ञात रोग व कीड पॅटर्नशी करतो."},
-      {title:"सल्ला मिळवा", body:"तुम्हाला तुमच्या भाषेत साधा सल्ला मिळतो — समस्या काय आहे, किती गंभीर आहे, आणि काय करायचं."},
-      {title:"फॉलो-अप", body:"पुष्टी झालेली प्रकरणं जिल्हा मॅपमध्ये जोडली जातात, ज्यामुळे अधिकारी प्रसार होण्याआधी कारवाई करू शकतात."}
-    ]},
-    footer:{line1:"स्मार्ट इंडिया हॅकाथॉन 2026 साठी तयार — समस्या विवरण 26131",
-      line2:"महाराष्ट्र शासन · महाराष्ट्र राज्य नवोन्मेष सोसायटी",
-      disclaimer:"ही एक संकल्पना डेमो आहे. दाखवलेले निदान अनुकरण केलेले आहेत, कृषी किंवा वैद्यकीय सल्ला नाही."}
+    "footer": {
+      "line1": "Built for Smart India Hackathon 2026 — Problem Statement 26131",
+      "line2": "Government of Maharashtra · Maharashtra State Innovation Society",
+      "disclaimer": "This is a concept demo. Diagnoses shown are simulated, not agronomic advice."
+    }
   }
 };
 
 let currentLang = "en";
 let selectedLeafId = null;
 let uploadedDataUrl = null;
-let currentDistrictId = "pune";
+let currentDistrictId = "Pune";
+let leafCheckState = null;
+let rejectedDataUrl = null;
+
+let currentView = "farmer";
+let officerFilter = "all";
+let lastAiResult = null;
+let referDistrictId = "Pune";
+let activeCaseId = null;
+let statusPollTimer = null;
+let showArchivedHistory = false;
+
+/* ===================== CENTRAL SERVER & STORAGE HYBRID FUNCTIONS ===================== */
+
+async function saveCase(caseObj) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cases`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(caseObj)
+    });
+    if (!response.ok) throw new Error("Server error");
+    return await response.json();
+  } catch (err) {
+    console.warn("Server fetch failed, falling back to local storage:", err);
+    await StorageAdapter.set("case:" + caseObj.id, JSON.stringify(caseObj));
+    return caseObj;
+  }
+}
+
+async function loadCase(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cases/${id}`);
+    if (!response.ok) throw new Error("Server error");
+    return await response.json();
+  } catch (err) {
+    console.warn("Server fetch failed, loading from local storage:", err);
+    const r = await StorageAdapter.get("case:" + id);
+    return r ? JSON.parse(r) : null;
+  }
+}
+
+async function loadAllCases() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cases`);
+    if (!response.ok) throw new Error("Server error");
+    return await response.json();
+  } catch (err) {
+    console.warn("Server fetch failed, loading all from local storage:", err);
+    const keys = await StorageAdapter.list("case:");
+    if (!keys || !keys.length) return [];
+    const results = await Promise.all(keys.map(async key => {
+      try {
+        const r = await StorageAdapter.get(key);
+        return r ? JSON.parse(r) : null;
+      } catch (e) { return null; }
+    }));
+    return results.filter(Boolean).sort((a, b) => 
+      (b.createdAt || "").localeCompare(a.createdAt || "")
+    );
+  }
+}
+
+async function deleteAllCases() {
+  try {
+    await fetch(`${API_BASE_URL}/cases`, { method: "DELETE" });
+  } catch (err) {
+    console.warn("Server fetch failed, clearing local storage:", err);
+  }
+
+  const keys = await StorageAdapter.list("case:");
+  if (keys && keys.length) {
+    await Promise.all(keys.map(key => StorageAdapter.delete(key)));
+  }
+}
+
+function seedDemoCases(){
+  const now = Date.now();
+  const days = n => new Date(now - n*24*60*60*1000).toISOString();
+  const seed = [
+    {id:"demo_1", createdAt:days(0.2), district:"Nashik", diagnosisId:"blight", confidence:89, severity:"high", imageDataUrl:null, aiNote:null, status:"pending", archived: false, confirmedAt:null},
+    {id:"demo_2", createdAt:days(0.6), district:"Kolhapur", diagnosisId:"mildew", confidence:84, severity:"medium", imageDataUrl:null, aiNote:null, status:"pending", archived: false, confirmedAt:null},
+    {id:"demo_3", createdAt:days(1.3), district:"Pune", diagnosisId:"aphid", confidence:91, severity:"medium", imageDataUrl:null, aiNote:null, status:"confirmed", archived: false, confirmedAt:days(1.0)},
+    {id:"demo_4", createdAt:days(2.1), district:"Amravati", diagnosisId:"nitrogen", confidence:78, severity:"low", imageDataUrl:null, aiNote:null, status:"confirmed", archived: false, confirmedAt:days(1.8)},
+    {id:"demo_5", createdAt:days(4.5), district:"Nashik", diagnosisId:"blight", confidence:87, severity:"high", imageDataUrl:null, aiNote:null, status:"resolved", archived: false, confirmedAt:days(4.0)},
+    {id:"demo_6", createdAt:days(0.05),district:"Ahilyanagar", diagnosisId:"aphid", confidence:83, severity:"medium", imageDataUrl:null, aiNote:null, status:"pending", archived: false, confirmedAt:null}
+  ];
+  return Promise.all(seed.map(saveCase));
+}
 
 /* ===================== HELPERS ===================== */
-function t(lang){ return translations[lang]; }
+function t(lang){ return translationsData[lang] || translationsData["en"] || {}; }
 function severityColor(sev){
   return sev==="high" ? "var(--alert-high)" : sev==="medium" ? "var(--alert-med)" : "var(--alert-low)";
 }
-function riskGaugeColor(score){
-  return score>=65 ? "var(--alert-high)" : score>=35 ? "var(--alert-med)" : "var(--alert-low)";
+
+/* ===================== OPEN-METEO WEATHER & RISK ENGINE ===================== */
+function calculateRiskScore(humidity, tempMax, leafWetness, rainProb) {
+  let score = 20; 
+  if (humidity > 80) score += 35;
+  else if (humidity > 60) score += 20;
+
+  if (tempMax >= 18 && tempMax <= 30) score += 20;
+  if (leafWetness > 40) score += 15;
+  if (rainProb > 50) score += 10;
+
+  return Math.min(100, Math.max(0, score));
+}
+
+function getRiskCategory(score) {
+  if (score >= 80) return { label: "Critical", color: "#d9534f" };
+  if (score >= 60) return { label: "High", color: "#e67e22" };
+  if (score >= 40) return { label: "Moderate", color: "#f0ad4e" };
+  return { label: "Low", color: "#5cb85c" };
+}
+
+function detectDiseases(temp, humidity, rainSum, rainProb, windSpeed) {
+  const diseases = [];
+  if (temp >= 10 && temp <= 24 && humidity >= 85 && (rainSum > 0 || rainProb > 50)) diseases.push("Late Blight");
+  if (temp >= 15 && temp <= 26 && humidity >= 80) diseases.push("Downy Mildew");
+  if (temp >= 24 && temp <= 32 && humidity >= 70) diseases.push("Early Blight");
+  if (temp >= 25 && temp <= 32 && humidity >= 80 && rainSum > 0.5) diseases.push("Anthracnose / Fruit Rot");
+  if (humidity >= 75 && (rainSum > 0 || rainProb > 40) && windSpeed > 8) diseases.push("Bacterial Leaf Blight");
+  if (temp >= 18 && temp <= 30 && humidity >= 50 && humidity <= 80 && rainSum < 0.5) diseases.push("Powdery Mildew");
+  if (temp >= 15 && temp <= 25 && humidity >= 85) diseases.push("Fungal Rust");
+  return diseases;
+}
+
+function getCardinalDirection(angle) {
+  if (angle === undefined || angle === null) return "N";
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  return directions[Math.round(angle / 45) % 8];
+}
+
+async function updateRiskUI(districtName) {
+  const coords = districtCoords[districtName];
+  if (!coords) return;
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,leaf_wetness_probability_mean&timezone=auto`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!data.daily) return;
+    
+    const daily = data.daily;
+    const current = data.current;
+
+    const liveHumidity = current ? current.relative_humidity_2m : daily.relative_humidity_2m_mean[0];
+    const liveTemp = current ? Math.round(current.temperature_2m) : Math.round(daily.temperature_2m_max[0]);
+    const liveRain = current ? current.precipitation : daily.precipitation_sum[0];
+    const liveWindSpeed = current ? current.wind_speed_10m : daily.wind_speed_10m_max[0];
+    const liveWindDir = current ? current.wind_direction_10m : daily.wind_direction_10m_dominant[0];
+
+    const dailyRisks = [];
+    for (let i = 0; i < 5; i++) {
+      const tempMax = daily.temperature_2m_max ? daily.temperature_2m_max[i] : 25;
+      const humidity = daily.relative_humidity_2m_mean ? daily.relative_humidity_2m_mean[i] : 60;
+      const rainProb = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 10;
+      const leafWetness = (daily.leaf_wetness_probability_mean && daily.leaf_wetness_probability_mean[i]) || 10;
+
+      const score = calculateRiskScore(humidity, tempMax, leafWetness, rainProb);
+      dailyRisks.push({ score, tempMax });
+    }
+
+    const todayScore = dailyRisks[0].score;
+    const category = getRiskCategory(todayScore);
+
+    const scoreElem = document.getElementById("gaugeScore");
+    if (scoreElem) scoreElem.innerText = `${todayScore}%`;
+
+    const fillElem = document.getElementById("gaugeFill");
+    if (fillElem) {
+      fillElem.style.width = `${todayScore}%`;
+      fillElem.style.backgroundColor = category.color;
+    }
+
+    const riskBadge = document.getElementById("riskChip") || document.querySelector(".risk-badge") || document.getElementById("riskLevel") || document.getElementById("riskBadge");
+    if (riskBadge) {
+      riskBadge.innerText = category.label;
+      riskBadge.style.backgroundColor = category.color;
+    }
+
+    const rainProbToday = daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : 0;
+    const activeDiseases = detectDiseases(liveTemp, liveHumidity, liveRain, rainProbToday, liveWindSpeed);
+
+    const reasoning = document.getElementById("riskReasoning");
+    if (reasoning) {
+      const diseaseText = activeDiseases.length > 0 
+        ? `High risk detected for: ${activeDiseases.join(", ")}.` 
+        : `Favorable conditions; low pathogen risk.`;
+
+      reasoning.innerText = `${diseaseText}\nTemp: ${liveTemp}°C | Humidity: ${liveHumidity}% | Rain: ${liveRain}mm (${rainProbToday}%) | Wind: ${liveWindSpeed} km/h (${getCardinalDirection(liveWindDir)})`;
+    }
+
+    const barChart = document.getElementById("barChart");
+    if (barChart) {
+      barChart.innerHTML = "";
+      dailyRisks.forEach((day, index) => {
+        const dayCat = getRiskCategory(day.score);
+        const col = document.createElement("div");
+        col.className = "bar-col";
+        col.style.cssText = "display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; flex:1;";
+        col.innerHTML = `
+          <div class="bar" style="width:100%; height:${day.score}%; background:${dayCat.color}; border-radius:4px 4px 0 0;"></div>
+          <div class="bar-day" style="margin-top:6px; font-size:12px; color:#aaa;">${index + 1}</div>
+        `;
+        barChart.appendChild(col);
+      });
+    }
+
+  } catch (error) {
+    console.error("Error fetching risk forecast:", error);
+  }
+}
+
+/* ===================== IMAGE ANALYSIS & CLASSIFICATION ===================== */
+const LEAF_MIN_RATIO = 0.10;
+
+function rgbToHsv(r, g, b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+  let h=0;
+  if(d!==0){
+    if(max===r) h = 60*(((g-b)/d)%6);
+    else if(max===g) h = 60*(((b-r)/d)+2);
+    else h = 60*(((r-g)/d)+4);
+  }
+  if(h<0) h+=360;
+  const s = max===0 ? 0 : d/max;
+  const v = max;
+  return {h,s,v};
+}
+
+function loadPixelData(dataUrl, maxDim){
+  maxDim = maxDim || 160;
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        resolve({data, w, h, ok:true});
+      }catch(err){ resolve({data:null, ok:false}); }
+    };
+    img.onerror = ()=> resolve({data:null, ok:false});
+    img.src = dataUrl;
+  });
+}
+
+function analyzeImageForLeaf(dataUrl){
+  return loadPixelData(dataUrl, 160).then(({data, ok})=>{
+    if(!ok || !data) return {ratio:1, analyzed:false};
+    let plantPixels = 0, total = 0;
+    for(let i=0;i<data.length;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+      if(a < 10) continue;
+      total++;
+      const {h:hue, s:sat, v:val} = rgbToHsv(r,g,b);
+      if(sat < 0.14) continue;
+      const isGreenish = hue >= 55 && hue <= 170;
+      const isBrownish = hue >= 15 && hue < 55 && val < 0.78;
+      if((isGreenish || isBrownish) && val > 0.06 && val < 0.97){ plantPixels++; }
+    }
+    const ratio = total > 0 ? plantPixels/total : 0;
+    return {ratio, analyzed:true};
+  });
+}
+
+function extractDiseaseFeatures(dataUrl){
+  return loadPixelData(dataUrl, 160).then(({data,w,h,ok})=>{
+    if(!ok || !data) return {analyzed:false};
+    let green=0, yellow=0, brown=0, whiteGray=0, dark=0, total=0;
+    let sumVal=0, sumValSq=0;
+    for(let i=0;i<data.length;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+      if(a < 10) continue;
+      total++;
+      const {h:hue, s:sat, v:val} = rgbToHsv(r,g,b);
+      sumVal += val; sumValSq += val*val;
+      if(sat < 0.16){
+        if(val > 0.55) whiteGray++;
+        else if(val < 0.22) dark++;
+        continue;
+      }
+      if(hue >= 55 && hue <= 170){ green++; }
+      else if(hue >= 35 && hue < 55 && val > 0.35){ yellow++; }
+      else if(hue >= 12 && hue < 35 && val < 0.78){ brown++; }
+      else if(val < 0.22){ dark++; }
+    }
+    if(total === 0) return {analyzed:false};
+    const mean = sumVal/total;
+    const variance = Math.max(0, sumValSq/total - mean*mean);
+    return {
+      analyzed:true,
+      greenRatio: green/total,
+      yellowRatio: yellow/total,
+      brownRatio: brown/total,
+      whiteGrayRatio: whiteGray/total,
+      darkRatio: dark/total,
+      textureScore: Math.min(1, variance*6)
+    };
+  });
+}
+
+function classifyFeatures(f){
+  const scores = {
+    healthy:  f.greenRatio - (f.brownRatio + f.whiteGrayRatio + f.yellowRatio)*1.3 - f.darkRatio*0.8,
+    blight:   f.brownRatio*2.3 + f.textureScore*0.25,
+    mildew:   f.whiteGrayRatio*2.3 + f.greenRatio*0.15,
+    aphid:    f.darkRatio*1.9 + f.textureScore*0.7 + f.greenRatio*0.2,
+    nitrogen: f.yellowRatio*2.3
+  };
+  let bestId = "healthy", bestScore = -Infinity;
+  Object.keys(scores).forEach(k=>{ if(scores[k] > bestScore){ bestScore = scores[k]; bestId = k; } });
+  if(bestId !== "healthy" && bestScore < 0.05){ bestId = "healthy"; }
+
+  const sortedScores = Object.values(scores).sort((a,b)=>b-a);
+  const margin = Math.max(0, sortedScores[0] - (sortedScores[1] !== undefined ? sortedScores[1] : 0));
+  const base = { healthy:90, blight:82, mildew:78, aphid:80, nitrogen:75 }[bestId] || 75;
+  const confidence = Math.max(58, Math.min(97, Math.round(base + margin*40)));
+
+  return {id:bestId, confidence, reasonKey:bestId};
+}
+
+async function analyzeWithAI(dataUrl){
+  const features = await extractDiseaseFeatures(dataUrl);
+  if(!features.analyzed){
+    const pick = LEAVES[0];
+    return { id: pick.id, confidence: pick.confidence, reason: null, aiPowered:false };
+  }
+  const {id, confidence, reasonKey} = classifyFeatures(features);
+  return { id, confidence, reason: reasonKey, aiPowered:true };
+}
+
+function setUploadCardState(state){
+  const upCard = document.getElementById("uploadCard");
+  if(upCard) upCard.classList.remove("checking","rejected");
+  if(state && upCard) upCard.classList.add(state);
+}
+
+function showLeafCheckMsg(kind){
+  const el = document.getElementById("leafCheckMsg");
+  if(!el) return;
+  const demo = t(currentLang).demo || {};
+  el.classList.remove("checking","error","show");
+  if(kind === "checking"){
+    el.textContent = demo.checking || "Checking image...";
+    el.classList.add("checking","show");
+  }else if(kind==="analyzing"){
+    el.textContent = demo.analyzing || "Analyzing diagnosis...";
+    el.classList.add("analyzing","show");
+  }else if(kind === "error"){
+    el.textContent = demo.notLeaf || "Invalid leaf image";
+    el.classList.add("error","show");
+  }else{
+    el.textContent = "";
+  }
 }
 
 function leafSvg(leaf){
@@ -162,24 +548,26 @@ function leafSvg(leaf){
   </svg>`;
 }
 
-/* ===================== RENDER: LEAF GRID ===================== */
+/* ===================== RENDER FUNCTIONS ===================== */
 function renderLeafGrid(){
   const grid = document.getElementById("leafGrid");
+  if(!grid) return;
   grid.innerHTML = "";
+  const langResults = (t(currentLang).results) || {};
   LEAVES.forEach(leaf=>{
     const card = document.createElement("button");
     card.className = "leaf-card";
     card.setAttribute("role","listitem");
     card.dataset.id = leaf.id;
     if(leaf.id === selectedLeafId) card.classList.add("selected");
-    card.innerHTML = `<div class="thumb">${leafSvg(leaf)}</div><div class="label">${t(currentLang).results[leaf.id].name}</div>`;
+    card.innerHTML = `<div class="thumb">${leafSvg(leaf)}</div><div class="label">${(langResults[leaf.id] || {}).name || leaf.id}</div>`;
     card.addEventListener("click", ()=>selectLeaf(leaf.id));
     grid.appendChild(card);
   });
   const upCard = document.createElement("button");
   upCard.className = "upload-card";
   upCard.id = "uploadCard";
-  upCard.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg><span id="uploadLabel">${t(currentLang).demo.upload}</span>`;
+  upCard.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg><span id="uploadLabel">${(t(currentLang).demo || {}).upload || 'Upload'}</span>`;
   upCard.addEventListener("click", ()=>document.getElementById("fileInput").click());
   grid.appendChild(upCard);
 }
@@ -187,47 +575,93 @@ function renderLeafGrid(){
 function selectLeaf(id){
   selectedLeafId = id;
   uploadedDataUrl = null;
+  lastAiResult = null;
+  activeCaseId = null;
   document.querySelectorAll(".leaf-card").forEach(c=>c.classList.toggle("selected", c.dataset.id===id));
   document.getElementById("resultCard").style.display = "none";
   document.getElementById("scanPanel").style.display = "none";
+  showLeafCheckMsg(null);
+  setUploadCardState(null);
+  leafCheckState = null;
+  rejectedDataUrl = null;
+  const upCard = document.getElementById("uploadCard");
+  if(upCard){
+    upCard.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/></svg><span id="uploadLabel">${(t(currentLang).demo || {}).upload || 'Upload'}</span>`;
+  }
   enableScan();
 }
 
 function enableScan(){
   const btn = document.getElementById("scanBtn");
+  if(!btn) return;
   btn.disabled = false;
   btn.classList.remove("btn-disabled");
 }
 
-/* handle custom upload: replace grid preview + pick a plausible mock result */
-document.getElementById("fileInput").addEventListener("change", (e)=>{
+/* Upload Listener */
+document.getElementById("fileInput")?.addEventListener("change", (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ()=>{
-    uploadedDataUrl = reader.result;
-    const nonHealthy = LEAVES.filter(l=>l.id!=="healthy");
-    const pick = nonHealthy[Math.floor(Math.random()*nonHealthy.length)];
-    selectedLeafId = pick.id;
+  reader.onload = async ()=>{
+    const dataUrl = reader.result;
     const upCard = document.getElementById("uploadCard");
-    upCard.innerHTML = `<div class="thumb"><img src="${uploadedDataUrl}" alt=""></div><div class="label">${t(currentLang).demo.uploaded}</div>`;
-    document.querySelectorAll(".leaf-card").forEach(c=>c.classList.remove("selected"));
+
     document.getElementById("resultCard").style.display = "none";
     document.getElementById("scanPanel").style.display = "none";
+    document.querySelectorAll(".leaf-card").forEach(c=>c.classList.remove("selected"));
+    selectedLeafId = null;
+    uploadedDataUrl = null;
+    lastAiResult = null;
+    activeCaseId = null;
+    const btn = document.getElementById("scanBtn");
+    btn.disabled = true;
+    btn.classList.add("btn-disabled");
+    setUploadCardState("checking");
+    showLeafCheckMsg("checking");
+    leafCheckState = "checking";
+    if(upCard) upCard.innerHTML = `<div class="thumb"><img src="${dataUrl}" alt="" style="opacity:.55"></div><div class="label">${(t(currentLang).demo||{}).checking||''}</div>`;
+
+    const {ratio} = await analyzeImageForLeaf(dataUrl);
+
+    if(ratio < LEAF_MIN_RATIO){
+      rejectedDataUrl = dataUrl;
+      leafCheckState = "rejected";
+      setUploadCardState("rejected");
+      showLeafCheckMsg("error");
+      if(upCard) upCard.innerHTML = `<div class="thumb"><img src="${dataUrl}" alt="" style="opacity:.55"></div><div class="label">${(t(currentLang).demo||{}).upload||''}</div>`;
+      return;
+    }
+
+    uploadedDataUrl = dataUrl;
+    leafCheckState = null;
+    rejectedDataUrl = null;
+    showLeafCheckMsg("analyzing");
+    if(upCard) upCard.innerHTML = `<div class="thumb"><img src="${dataUrl}" alt="" style="opacity:.7"></div><div class="label">${(t(currentLang).demo||{}).analyzing||''}</div>`;
+
+    const aiResult = await analyzeWithAI(dataUrl);
+    lastAiResult = aiResult;
+    selectedLeafId = aiResult.id;
+
+    setUploadCardState(null);
+    showLeafCheckMsg(null);
+    if(upCard) upCard.innerHTML = `<div class="thumb"><img src="${uploadedDataUrl}" alt=""></div><div class="label">${(t(currentLang).demo||{}).uploaded||''}</div>`;
     enableScan();
   };
   reader.readAsDataURL(file);
 });
 
-/* ===================== SCAN ANIMATION ===================== */
-document.getElementById("scanBtn").addEventListener("click", runScan);
+/* Scan Execution */
+document.getElementById("scanBtn")?.addEventListener("click", runScan);
 function runScan(){
   if(!selectedLeafId) return;
   const panel = document.getElementById("scanPanel");
   const fill = document.getElementById("scanFill");
   const resultCard = document.getElementById("resultCard");
   resultCard.style.display = "none";
-  document.getElementById("stamp").classList.remove("show");
+  document.getElementById("stamp")?.classList.remove("show");
+  activeCaseId = null;
+  resetReferUI();
   panel.style.display = "block";
   fill.style.width = "0%";
   let pct = 0;
@@ -246,73 +680,74 @@ function runScan(){
 }
 
 function renderResult(id){
-  const leaf = LEAVES.find(l=>l.id===id);
-  const data = t(currentLang).results[id];
-  const demo = t(currentLang).demo;
+  const leaf = LEAVES.find(l=>l.id===id) || LEAVES[0];
+  const data = (t(currentLang).results || {})[id] || {};
+  const demo = t(currentLang).demo || {};
   const card = document.getElementById("resultCard");
-  document.getElementById("resultName").textContent = data.name;
+  document.getElementById("resultName").textContent = data.name || id;
   const badge = document.getElementById("severityBadge");
-  badge.textContent = demo.severityLabels[leaf.severity];
+  badge.textContent = (demo.severityLabels || {})[leaf.severity] || leaf.severity;
   badge.className = "severity-badge severity-" + leaf.severity;
-  document.getElementById("confidenceValue").textContent = leaf.confidence + "%";
-  document.getElementById("advisoryText").textContent = data.advisory;
+
+  const usingAi = lastAiResult && lastAiResult.id === id && lastAiResult.aiPowered;
+  const confidenceToShow = usingAi ? lastAiResult.confidence : leaf.confidence;
+  document.getElementById("confidenceValue").textContent = confidenceToShow + "%";
+  document.getElementById("advisoryText").textContent = data.advisory || '';
+
+  const aiNoteEl = document.getElementById("aiNote");
+  if(usingAi && lastAiResult.reason){
+    const reasonText = ((demo.aiReasons)||{})[lastAiResult.reason] || "";
+    if(reasonText){
+      aiNoteEl.textContent = reasonText;
+      aiNoteEl.style.display = "block";
+    }else{
+      aiNoteEl.textContent = "";
+      aiNoteEl.style.display = "none";
+    }
+  }else{
+    aiNoteEl.textContent = "";
+    aiNoteEl.style.display = "none";
+  }
+
+  const statusPill = document.getElementById("aiStatusBadge");
+  if(statusPill){
+    statusPill.textContent = demo.aiBadge || 'AI Screening';
+    statusPill.className = "ai-status-pill ai-status-pending";
+  }
+
+  populateReferDistrictSelect();
   card.style.display = "block";
   const fill = document.getElementById("confidenceFill");
   fill.style.width = "0%";
-  requestAnimationFrame(()=>{ setTimeout(()=>{ fill.style.width = leaf.confidence + "%"; }, 30); });
-  const stampCircles = document.querySelectorAll("#stamp circle, #stamp path:not(#stampPath)");
-  stampCircles.forEach(el=>el.setAttribute("stroke", severityColor(leaf.severity)));
-  const stampText = document.getElementById("stampText");
-  const stampTextParent = stampText.closest("text");
-  if(stampTextParent) stampTextParent.setAttribute("fill", severityColor(leaf.severity));
-  setTimeout(()=>document.getElementById("stamp").classList.add("show"), 260);
+  requestAnimationFrame(()=>{ setTimeout(()=>{ fill.style.width = confidenceToShow + "%"; }, 30); });
 }
 
-/* ===================== RISK SECTION ===================== */
+/* ===================== DISTRICT DROPDOWN & RISK SECTION ===================== */
 function populateDistrictSelect(){
   const select = document.getElementById("districtSelect");
+  if(!select) return;
   select.innerHTML = "";
-  DISTRICTS.forEach(d=>{
+  Object.keys(districtCoords).forEach(dName=>{
     const opt = document.createElement("option");
-    opt.value = d.id;
-    opt.textContent = t(currentLang).districts[d.id].name;
-    if(d.id === currentDistrictId) opt.selected = true;
+    opt.value = dName;
+    opt.textContent = ((t(currentLang).districts || {})[dName.toLowerCase()] || {}).name || dName;
+    if(dName === currentDistrictId) opt.selected = true;
     select.appendChild(opt);
   });
 }
-document.getElementById("districtSelect").addEventListener("change", (e)=>{
+
+document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
   currentDistrictId = e.target.value;
-  renderRisk();
+  updateRiskUI(currentDistrictId);
 });
-
-function renderRisk(){
-  const d = DISTRICTS.find(x=>x.id===currentDistrictId);
-  const info = t(currentLang).districts[d.id];
-  const demo = t(currentLang).demo;
-  document.getElementById("gaugeFill").style.width = d.score + "%";
-  document.getElementById("gaugeFill").style.background = riskGaugeColor(d.score);
-  document.getElementById("gaugeScore").textContent = d.score + "%";
-  document.getElementById("riskReasoning").textContent = info.reasoning;
-  const chip = document.getElementById("riskChip");
-  chip.textContent = demo.severityLabels[d.risk];
-  chip.style.background = d.risk==="high" ? "var(--alert-high-bg)" : d.risk==="medium" ? "var(--alert-med-bg)" : "var(--alert-low-bg)";
-  chip.style.color = severityColor(d.risk);
-
-  const barChart = document.getElementById("barChart");
-  barChart.innerHTML = "";
-  d.values.forEach((v,i)=>{
-    const col = document.createElement("div");
-    col.className = "bar-col";
-    col.innerHTML = `<div class="bar" style="height:${v}%; background:${riskGaugeColor(v)}"></div><div class="bar-day">${i+1}</div>`;
-    barChart.appendChild(col);
-  });
-}
 
 /* ===================== HOW IT WORKS ===================== */
 function renderSteps(){
   const grid = document.getElementById("stepsGrid");
+  if(!grid) return;
   grid.innerHTML = "";
-  t(currentLang).how.steps.forEach((s,i)=>{
+  const stepsList = ((t(currentLang).how || {}).steps) || [];
+  stepsList.forEach((s,i)=>{
     const card = document.createElement("div");
     card.className = "step";
     card.innerHTML = `<div class="num">0${i+1}</div><h3>${s.title}</h3><p>${s.body}</p>`;
@@ -320,15 +755,323 @@ function renderSteps(){
   });
 }
 
-/* ===================== STATIC TEXT + LANGUAGE SWITCH ===================== */
+/* ===================== REFERRAL FLOW ===================== */
+let referState = "idle";
+let lastKnownCaseStatus = null;
+
+function populateReferDistrictSelect(){
+  const select = document.getElementById("referDistrict");
+  if(!select) return;
+  select.innerHTML = "";
+  Object.keys(districtCoords).forEach(dName=>{
+    const opt = document.createElement("option");
+    opt.value = dName;
+    opt.textContent = ((t(currentLang).districts || {})[dName.toLowerCase()] || {}).name || dName;
+    if(dName === referDistrictId) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function genCaseId(){
+  return "C" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+function refreshReferUI(){
+  const btn = document.getElementById("referBtn");
+  const status = document.getElementById("referStatus");
+  const pill = document.getElementById("aiStatusBadge");
+  const stampEl = document.getElementById("stamp");
+  if(!btn || !status) return;
+  const demo = t(currentLang).demo || {};
+
+  if(stampEl){
+    stampEl.classList.toggle("show", lastKnownCaseStatus === "confirmed" || lastKnownCaseStatus === "resolved");
+  }
+
+  if(referState === "idle"){
+    btn.disabled = false;
+    btn.classList.remove("btn-disabled");
+    btn.textContent = demo.talkToOfficer || 'Send to extension officer';
+    status.className = "refer-status";
+    status.textContent = "";
+  }else if(referState === "sending"){
+    btn.disabled = true;
+    btn.classList.add("btn-disabled");
+    btn.textContent = demo.referSending || 'Sending…';
+    status.className = "refer-status";
+    status.textContent = "";
+  }else if(referState === "sent"){
+    btn.disabled = true;
+    btn.classList.add("btn-disabled");
+    const shortId = activeCaseId ? activeCaseId.slice(-6).toUpperCase() : "";
+    btn.textContent = `${demo.referSentPrefix || 'Sent — case'} #${shortId}`;
+    status.classList.add("show");
+    if(lastKnownCaseStatus === "resolved"){
+      status.className = "refer-status show resolved";
+      status.textContent = demo.referResolvedMsg || 'Case resolved.';
+    }else if(lastKnownCaseStatus === "confirmed"){
+      status.className = "refer-status show confirmed";
+      status.textContent = demo.referConfirmedMsg || 'Verified by extension officer.';
+      if(pill){ pill.textContent = demo.verifiedBadge || 'Verified'; pill.className = "ai-status-pill ai-status-verified"; }
+    }else{
+      status.className = "refer-status show pending";
+      status.textContent = demo.referPending || 'Pending officer review.';
+    }
+  }
+}
+
+function resetReferUI(){
+  referState = "idle";
+  lastKnownCaseStatus = null;
+  refreshReferUI();
+}
+
+async function onReferClick() {
+  if (referState !== "idle" || !selectedLeafId) return;
+  referState = "sending";
+  refreshReferUI();
+
+  const leaf = LEAVES.find(l => l.id === selectedLeafId) || LEAVES[0];
+  const usingAi = lastAiResult && lastAiResult.id === selectedLeafId && lastAiResult.aiPowered;
+  
+  const caseObj = {
+    id: genCaseId(),
+    createdAt: new Date().toISOString(),
+    district: referDistrictId,
+    diagnosisId: selectedLeafId,
+    confidence: usingAi ? lastAiResult.confidence : leaf.confidence,
+    severity: leaf.severity,
+    imageDataUrl: uploadedDataUrl || null,
+    soilImageDataUrl: typeof soilDataUrl !== 'undefined' ? soilDataUrl : null,
+    fruitImageDataUrl: typeof fruitDataUrl !== 'undefined' ? fruitDataUrl : null,
+    audioNoteDataUrl: typeof audioDataUrl !== 'undefined' ? audioDataUrl : null,
+    farmerNotes: document.getElementById("farmerNotes") ? document.getElementById("farmerNotes").value.trim() : "",
+    farmerPhone: (typeof currentFarmerUser !== 'undefined' && currentFarmerUser) ? currentFarmerUser.phone : "Unknown",
+    aiNote: usingAi ? lastAiResult.reason : null,
+    status: "pending",
+    confirmedAt: null
+  };
+
+  try {
+    await saveCase(caseObj);
+    activeCaseId = caseObj.id;
+    lastKnownCaseStatus = "pending";
+    referState = "sent";
+    refreshReferUI();
+  } catch (err) {
+    console.error("Failed to send case to extension officer:", err);
+    referState = "idle";
+    refreshReferUI();
+  }
+}
+
+function toggleHistoryView() {
+  showArchivedHistory = !showArchivedHistory;
+  const btn = document.getElementById("toggleHistoryBtn");
+  if (btn) {
+    const off = t(currentLang).officer || {};
+    btn.textContent = showArchivedHistory ? "← Back to Active Cases" : "Show History / Archived";
+    btn.classList.toggle("active-history", showArchivedHistory);
+  }
+  renderOfficerDash();
+}
+
+async function clearResolvedCasesFromFeed() {
+  const cases = await loadAllCases();
+  const resolvedCases = cases.filter(c => c.status === "resolved" && !c.archived);
+
+  if (resolvedCases.length === 0) {
+    alert("No active resolved cases to clear!");
+    return;
+  }
+
+  await Promise.all(
+    resolvedCases.map(c => {
+      c.archived = true;
+      return saveCase(c);
+    })
+  );
+
+  showArchivedHistory = false;
+  renderOfficerDash();
+}
+
+async function unarchiveCase(caseId) {
+  const c = await loadCase(caseId);
+  if (c) {
+    c.archived = false;
+    await saveCase(c);
+    renderOfficerDash();
+  }
+}
+
+/* ===================== OFFICER DASHBOARD ===================== */
+async function renderOfficerDash(){
+  const grid = document.getElementById("caseList");
+  if(!grid) return;
+  grid.innerHTML = `<div class="officer-loading">Loading cases…</div>`;
+  
+  let cases = await loadAllCases();
+  if(!showArchivedHistory){
+    cases=cases.filter(c=> !c.archived);
+  }else{
+    cases=cases.filter(c=>c.archived);
+  }
+  const demo = t(currentLang).demo || {};
+  const off = t(currentLang).officer || {};
+
+  const total = cases.length;
+  const pending = cases.filter(c=>c.status==="pending").length;
+  const confirmedOrResolved = cases.filter(c=>c.status!=="pending").length;
+  if(document.getElementById("statTotal")) document.getElementById("statTotal").textContent = total;
+  if(document.getElementById("statPending")) document.getElementById("statPending").textContent = pending;
+  if(document.getElementById("statConfirmed")) document.getElementById("statConfirmed").textContent = confirmedOrResolved;
+  if(document.getElementById("statTopIssue")) document.getElementById("statTopIssue").textContent = topIssueLabel(cases, off);
+
+  const filtered = officerFilter === "all" ? cases : cases.filter(c=>c.status===officerFilter);
+  grid.innerHTML = "";
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="case-empty">${showArchivedHistory?'No archived history found.':(off.emptyState || 'No cases')}</div>`;
+    return;
+  }
+
+  filtered.forEach(c=>{
+    const leaf = LEAVES.find(l=>l.id===c.diagnosisId) || LEAVES[0];
+    const diagName = ((t(currentLang).results || {})[c.diagnosisId] || {}).name || c.diagnosisId;
+    const districtName = ((t(currentLang).districts || {})[c.district.toLowerCase()] || {}).name || c.district;
+    const thumbHtml = c.imageDataUrl ? `<img src="${c.imageDataUrl}" alt="">` : leafSvg(leaf);
+    const statusKey = "status" + c.status.charAt(0).toUpperCase() + c.status.slice(1);
+    const statusLabel = off[statusKey] || c.status;
+
+    const farmerPhoneHtml = c.farmerPhone && c.farmerPhone !== "Unknown" 
+      ? `<div class="case-meta" style="color: var(--leaf-dark); font-weight: 600; margin-top: 4px;">Farmer Contact: +91 ${escapeHtml(c.farmerPhone)}</div>` 
+      : "";
+
+    const farmerNotesHtml = c.farmerNotes 
+      ? `<div style="margin-top: 8px; font-size: 13.5px; color: var(--ink-soft); background: var(--paper-2); padding: 8px 10px; border-radius: 6px;"><strong>Farmer Notes:</strong> ${escapeHtml(c.farmerNotes)}</div>` 
+      : "";
+
+    const extraImagesHtml = (c.soilImageDataUrl || c.fruitImageDataUrl) ? `
+      <div style="margin-top: 8px; display: flex; gap: 10px;">
+        ${c.soilImageDataUrl ? `<div style="text-align: center;"><img src="${c.soilImageDataUrl}" style="width: 65px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line);"><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">Soil</div></div>` : ""}
+        ${c.fruitImageDataUrl ? `<div style="text-align: center;"><img src="${c.fruitImageDataUrl}" style="width: 65px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line);"><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">Fruit/Veg</div></div>` : ""}
+      </div>
+    ` : "";
+
+    const audioHtml = c.audioNoteDataUrl 
+      ? `<div class="case-audio"><audio controls src="${c.audioNoteDataUrl}" style="width: 100%; height: 36px; margin-top: 10px;"></audio></div>` 
+      : "";
+
+    const card = document.createElement("div");
+    card.className = "case-card";
+    card.innerHTML = `
+      <div class="case-thumb">${thumbHtml}</div>
+      <div class="case-body">
+        <div class="case-top">
+          <div class="case-name">${escapeHtml(diagName)}</div>
+          <div class="status-badge status-${c.status}">${escapeHtml(statusLabel)}</div>
+        </div>
+        <div class="case-meta">${escapeHtml(districtName)} · ${off.submitted || 'Submitted'} ${formatDate(c.createdAt)}</div>
+        ${farmerPhoneHtml}
+        <div class="case-meta" style="margin-top: 4px;">
+          <span>${demo.confidence || 'Confidence'}: ${c.confidence}%</span>
+          <span class="severity-badge severity-${c.severity}" style="padding:2px 9px;font-size:11px;">${(demo.severityLabels || {})[c.severity] || c.severity}</span>
+        </div>
+        ${c.aiNote ? `<div class="case-ai-note">“${escapeHtml(c.aiNote)}”</div>` : ""}
+        ${farmerNotesHtml}
+        ${extraImagesHtml}
+        ${audioHtml}
+        <div class="case-actions" style="margin-top: 14px;">
+          ${c.status==="pending" ? `<button class="btn btn-primary btn-sm" data-action="confirm" data-id="${c.id}">${off.confirmBtn || 'Confirm'}</button>` : ""}
+          ${c.status==="confirmed" ? `
+            <button class="btn btn-secondary btn-sm" data-action="resolve" data-id="${c.id}">${off.resolveBtn || 'Resolve'}</button>
+            <button class="btn btn-secondary btn-sm" data-action="lab" data-id="${c.id}">${off.labBtn || 'Send to Lab'}</button>
+            <button class="btn btn-secondary btn-sm" data-action="followup" data-id="${c.id}">${off.followupBtn || 'Set Follow-up'}</button>
+          ` : ""}
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll("[data-action]").forEach(btn=>{
+    btn.addEventListener("click", onCaseAction);
+  });
+}
+
+async function onCaseAction(e){
+  const btn = e.currentTarget;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  btn.disabled = true;
+  const c = await loadCase(id);
+  if(!c){ renderOfficerDash(); return; }
+
+  if(action === "confirm"){
+    c.status = "confirmed";
+    c.confirmedAt = new Date().toISOString();
+  }else if(action === "resolve"){
+    c.status = "resolved";
+  }else if(action ==="restore"){
+    await unarchiveCase(id);
+    return;
+  }else if(action === "lab"){
+    alert("Case flagged for laboratory analysis.");
+    c.status = "lab_testing";
+  }else if(action === "followup"){
+    alert("Follow-up monitoring scheduled.");
+    btn.disabled = false;
+    return;
+  }
+
+  await saveCase(c);
+  renderOfficerDash();
+}
+
+function topIssueLabel(cases, off){
+  if(!cases.length) return off.none || '—';
+  const counts = {};
+  cases.forEach(c=>{ counts[c.diagnosisId] = (counts[c.diagnosisId]||0) + 1; });
+  let topId = null, topCount = 0;
+  Object.keys(counts).forEach(k=>{ if(counts[k] > topCount){ topCount = counts[k]; topId = k; } });
+  if(!topId) return off.none || '—';
+  return ((t(currentLang).results || {})[topId] || {}).name || topId;
+}
+
+function formatDate(iso){
+  try{ return new Date(iso).toLocaleDateString(undefined, {day:"numeric", month:"short"}); }catch(err){ return ""; }
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, ch=>({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+}
+
+/* ===================== VIEW & LANGUAGE SWITCHERS ===================== */
+const originalSwitchView=switchView;
+function switchView(view){
+  currentView = view;
+  document.querySelectorAll(".view-btn").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  document.getElementById("farmerView").style.display = view==="farmer" ? "" : "none";
+  document.getElementById("officerView").style.display = view==="officer" ? "" : "none";
+  
+  updateAuthUI();
+
+  if(view === "officer" && currentOfficerUser){
+    renderOfficerDash();
+    initOrUpdateMap();
+    setTimeout(()=>{
+      if(mapInstance){
+        mapInstance.invalidateSize();
+      }
+    },250);
+  }
+};
+
 function applyStaticText(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{
     const path = el.getAttribute("data-i18n").split(".");
     let val = t(currentLang);
     for(const p of path){ val = val && val[p]; }
-    if(typeof val === "string"){
-      el.textContent = val;
-    }
+    if(typeof val === "string"){ el.textContent = val; }
   });
 }
 
@@ -339,34 +1082,328 @@ function switchLang(lang){
   document.querySelectorAll(".lang-btn").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
   applyStaticText();
   renderLeafGrid();
-  if(uploadedDataUrl){
-    const upCard = document.getElementById("uploadCard");
-    upCard.innerHTML = `<div class="thumb"><img src="${uploadedDataUrl}" alt=""></div><div class="label">${t(currentLang).demo.uploaded}</div>`;
-  }
-  if(selectedLeafId){
-    document.querySelectorAll(".leaf-card").forEach(c=>c.classList.toggle("selected", c.dataset.id===selectedLeafId));
-  }
-  if(document.getElementById("resultCard").style.display === "block"){
-    renderResult(selectedLeafId);
-  }
   populateDistrictSelect();
-  renderRisk();
+  updateRiskUI(currentDistrictId);
   renderSteps();
+  refreshReferUI();
+  if(currentView === "officer"){ renderOfficerDash(); }
 }
 
+/* ===================== AUTHENTICATION & MODAL CONTROLS ===================== */
+let currentFarmerUser = null;
+let currentOfficerUser = null;
+
+async function checkAuthOnStart() {
+  try {
+    const farmer = await StorageAdapter.get("auth_farmer");
+    const officer = await StorageAdapter.get("auth_officer");
+    
+    if (farmer) currentFarmerUser = JSON.parse(farmer);
+    if (officer) currentOfficerUser = JSON.parse(officer);
+  } catch(e) {
+    console.error("Auth check failed:", e);
+  }
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const infoBar = document.getElementById("userInfoBar");
+  const statusText = document.getElementById("userStatusText");
+  const farmModal = document.getElementById("farmerLoginModal");
+  const offModal = document.getElementById("officerLoginModal");
+  
+  if (currentView === "officer") {
+    if (farmModal) farmModal.style.display = "none";
+    if (currentOfficerUser) {
+      if (infoBar) infoBar.style.display = "flex";
+      if (statusText) statusText.textContent = `Officer: ${currentOfficerUser.id}`;
+      if (offModal) offModal.style.display = "none";
+    } else {
+      if (infoBar) infoBar.style.display = "none";
+      if (offModal) offModal.style.display = "flex";
+    }
+  } else {
+    if (offModal) offModal.style.display = "none";
+    if (currentFarmerUser) {
+      if (infoBar) infoBar.style.display = "flex";
+      if (statusText) statusText.textContent = `Farmer: +91 ${currentFarmerUser.phone}`;
+      if (farmModal) farmModal.style.display = "none";
+    } else {
+      if (infoBar) infoBar.style.display = "none";
+      if (farmModal) farmModal.style.display = "flex";
+    }
+  }
+}
+
+const farmerLoginForm = document.getElementById("farmerLoginForm");
+if (farmerLoginForm) {
+  farmerLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const phone = document.getElementById("farmerPhone").value.trim();
+    if (phone.length === 10) {
+      currentFarmerUser = { phone };
+      await StorageAdapter.set("auth_farmer", JSON.stringify(currentFarmerUser));
+      updateAuthUI();
+    }
+  });
+}
+
+const officerLoginForm = document.getElementById("officerLoginForm");
+if (officerLoginForm) {
+  officerLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("officerId").value.trim();
+    const pass = document.getElementById("officerPass").value.trim();
+    
+    if (pass === "1234" || pass.length >= 4) {
+      currentOfficerUser = { id };
+      await StorageAdapter.set("auth_officer", JSON.stringify(currentOfficerUser));
+      const errEl = document.getElementById("officerAuthError");
+      if (errEl) errEl.style.display = "none";
+      updateAuthUI();
+      renderOfficerDash();
+      initOrUpdateMap();
+    } else {
+      const errEl = document.getElementById("officerAuthError");
+      if (errEl) errEl.style.display = "block";
+    }
+  });
+}
+
+const cancelOfficerLogin = document.getElementById("cancelOfficerLogin");
+if (cancelOfficerLogin) {
+  cancelOfficerLogin.addEventListener("click", () => {
+    switchView("farmer");
+  });
+}
+
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    if (currentView === "officer") {
+      currentOfficerUser = null;
+      await StorageAdapter.delete("auth_officer");
+    } else {
+      currentFarmerUser = null;
+      await StorageAdapter.delete("auth_farmer");
+    }
+    updateAuthUI();
+  });
+}
+
+/* ===================== GEOSPATIAL MAP COORDINATES ===================== */
+const DISTRICT_MAP_COORDS = {
+  Pune: { lat: 18.5204, lng: 73.8567 }, Nashik: { lat: 19.9975, lng: 73.7898 },
+  Ahilyanagar: { lat: 19.0946, lng: 74.7384 }, Kolhapur: { lat: 16.7050, lng: 74.2433 },
+  Amravati: { lat: 20.9374, lng: 77.7796 }, Nagpur: { lat: 21.1458, lng: 79.0882 },
+  Akola: { lat: 20.7002, lng: 77.0082 }, Beed: { lat: 18.9901, lng: 75.7600 },
+  Bhandara: { lat: 21.1682, lng: 79.6489 }, Parbhani: { lat: 19.2686, lng: 76.7709 },
+  Satara: { lat: 17.6805, lng: 74.0183 }, Wardha: { lat: 20.7453, lng: 78.6022 },
+  Yavatmal: { lat: 20.3888, lng: 78.1204 }
+};
+
+let mapInstance = null;
+let mapMarkers = [];
+
+async function initOrUpdateMap() {
+  if (typeof L === "undefined") return;
+  const mapContainer = document.getElementById('hotspotMap');
+  if (!mapContainer) return;
+
+  if (!mapInstance) {
+    mapInstance = L.map('hotspotMap').setView([19.2502, 76.1000], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 12, attribution: '© OpenStreetMap'
+    }).addTo(mapInstance);
+  }
+
+  mapMarkers.forEach(m => mapInstance.removeLayer(m));
+  mapMarkers = [];
+
+  const cases = await loadAllCases();
+  const districtCounts = {};
+  cases.forEach(c => {
+    const key = Object.keys(DISTRICT_MAP_COORDS).find(k => k.toLowerCase() === (c.district || "").toLowerCase()) || "Pune";
+    if (!districtCounts[key]) districtCounts[key] = { total: 0, high: 0, topDisease: c.diagnosisId };
+    districtCounts[key].total += 1;
+    if (c.severity === "high") districtCounts[key].high += 1;
+  });
+
+  Object.keys(DISTRICT_MAP_COORDS).forEach(dKey => {
+    const coords = DISTRICT_MAP_COORDS[dKey];
+    const data = districtCounts[dKey] || { total: 0, high: 0, topDisease: "None" };
+    const radius = Math.max(12000, data.total * 9000);
+    const color = data.high > 0 ? "#B23A2E" : data.total > 0 ? "#C4831F" : "#4B7340";
+
+    const circle = L.circle([coords.lat, coords.lng], {
+      color: color, fillColor: color, fillOpacity: 0.45, radius: radius
+    }).addTo(mapInstance);
+
+    const diagName = ((t(currentLang).results || {})[data.topDisease] || {}).name || data.topDisease;
+    circle.bindPopup(`
+      <div class="hotspot-popup">
+        <h4>${dKey} Region</h4>
+        <p><strong>Active Cases:</strong> ${data.total}</p>
+        <p><strong>High Severity:</strong> ${data.high}</p>
+        <p><strong>Primary Concern:</strong> ${diagName}</p>
+      </div>
+    `);
+    mapMarkers.push(circle);
+  });
+
+  setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 300);
+}
+
+/* ===================== EVENT BINDINGS & INIT ===================== */
 document.querySelectorAll(".lang-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>switchLang(btn.dataset.lang));
 });
-
-document.getElementById("heroCta").addEventListener("click", ()=>{
-  document.getElementById("demo").scrollIntoView({behavior:"smooth"});
+document.querySelectorAll(".view-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>switchView(btn.dataset.view));
 });
-document.getElementById("heroCta2").addEventListener("click", ()=>{
-  document.getElementById("how").scrollIntoView({behavior:"smooth"});
+document.getElementById("heroCta")?.addEventListener("click", ()=>{
+  document.getElementById("demo")?.scrollIntoView({behavior:"smooth"});
+});
+document.getElementById("heroCta2")?.addEventListener("click", ()=>{
+  document.getElementById("how")?.scrollIntoView({behavior:"smooth"});
+});
+document.getElementById("referBtn")?.addEventListener("click", onReferClick);
+document.getElementById("referDistrict")?.addEventListener("change", (e)=>{ referDistrictId = e.target.value; });
+document.getElementById("officerFilter")?.addEventListener("change", (e)=>{
+  officerFilter = e.target.value;
+  renderOfficerDash();
+});
+document.getElementById("clearResolvedBtn")?.addEventListener("click", clearResolvedCasesFromFeed);
+document.getElementById("toggleHistoryBtn")?.addEventListener("click", toggleHistoryView);
+
+async function initApp(){
+  try{
+    const res = await fetch("translations.json");
+    if(res.ok) {
+      const json = await res.json();
+      translationsData = { ...translationsData, ...json };
+    }
+  }catch(e){
+    console.warn("Using fallback translation data.", e);
+  }
+  
+  applyStaticText();
+  renderLeafGrid();
+  populateDistrictSelect();
+  updateRiskUI(currentDistrictId);
+  renderSteps();
+  resetReferUI();
+
+  try{
+    const existing = await loadAllCases();
+    if(existing.length === 0){ await seedDemoCases(); }
+  }catch(err){
+    console.error("Could not initialize case data:", err);
+  }
+
+  await checkAuthOnStart();
+}
+
+/* Supplemental Image & Audio Inputs */
+let soilDataUrl = null;
+let fruitDataUrl = null;
+let audioDataUrl = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+document.getElementById("soilInput")?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    soilDataUrl = reader.result;
+    document.getElementById("soilPreview").innerHTML = `<img src="${soilDataUrl}" alt="Soil"><span class="badge-attached">Soil Added</span>`;
+  };
+  reader.readAsDataURL(file);
 });
 
-/* ===================== INIT ===================== */
-renderLeafGrid();
-populateDistrictSelect();
-renderRisk();
-renderSteps();
+document.getElementById("fruitInput")?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    fruitDataUrl = reader.result;
+    document.getElementById("fruitPreview").innerHTML = `<img src="${fruitDataUrl}" alt="Fruit"><span class="badge-attached">Fruit Added</span>`;
+  };
+  reader.readAsDataURL(file);
+});
+
+const recordBtn = document.getElementById('recordBtn');
+const audioPreviewWrap = document.getElementById('audioPreviewWrap');
+const audioPlayback = document.getElementById('audioPlayback');
+
+recordBtn?.addEventListener('click', async () => {
+  if (isRecording) {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    isRecording = false;
+    recordBtn.classList.remove("recording");
+  } else {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.addEventListener("dataavailable", event => { audioChunks.push(event.data); });
+      mediaRecorder.addEventListener("stop", () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          audioDataUrl = reader.result;
+          if (audioPlayback && audioPreviewWrap) {
+            audioPlayback.src = audioDataUrl;
+            audioPreviewWrap.classList.remove("hidden");
+            audioPreviewWrap.style.display = 'block';
+          }
+          if (recordBtn) recordBtn.textContent = "Record New";
+        };
+      });
+
+      mediaRecorder.start();
+      isRecording = true;
+      recordBtn.textContent = "Stop";
+      recordBtn.classList.add("recording");
+    } catch (err) {
+      console.error("Microphone access denied", err);
+    }
+  }
+});
+
+document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
+  audioDataUrl = null;
+  if (audioPlayback) audioPlayback.src = "";
+  if (audioPreviewWrap) audioPreviewWrap.style.display = 'none';
+  if (recordBtn) recordBtn.textContent = "Record Voice Note";
+});
+
+// Run Init
+initApp();
+async function fetchSoilHealth() {
+    try {
+        // This calls your Flask server, which holds the API key safely
+        const response = await fetch('http://127.0.0.1:5000/soil-health');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Moisture Level:", data.moisture);
+        console.log("Surface Temp (K):", data.t0);
+        
+        // Example: Update an HTML element with the moisture data
+        // document.getElementById('moisture-display').innerText = data.moisture;
+        
+    } catch (error) {
+        console.error("Failed to connect to the backend:", error);
+    }
+}
+
+// Call the function when the page loads
+fetchSoilHealth();
