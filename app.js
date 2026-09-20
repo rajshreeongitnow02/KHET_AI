@@ -737,8 +737,14 @@ function populateDistrictSelect(){
 }
 
 document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
-  currentDistrictId = e.target.value;
-  updateRiskUI(currentDistrictId);
+    currentDistrictId = e.target.value;
+    updateRiskUI(currentDistrictId);
+    
+    // Fetch coordinates for the chosen district and update the 7 metrics
+    const coords = districtCoords[currentDistrictId];
+    if (coords) {
+        updateLiveFieldData(coords.lat, coords.lon);
+    }
 });
 
 /* ===================== HOW IT WORKS ===================== */
