@@ -361,6 +361,99 @@ async function updateRiskUI(districtName) {
 
       reasoning.innerText = `${diseaseText}\nTemp: ${liveTemp}°C | Humidity: ${liveHumidity}% | Rain: ${liveRain}mm (${rainProbToday}%) | Wind: ${liveWindSpeed} km/h (${getCardinalDirection(liveWindDir)})`;
     }
+    // Run Init
+initApp();
+async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
+    try {
+        const [soilRes, weatherRes] = await Promise.all([
+            fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
+            fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
+        ]);
+
+        let soilData = await soilRes.json();
+        // Handle case if soilData is returned as an array by the API
+        if (Array.isArray(soilData) && soilData.length > 0) {
+            soilData = soilData[0];
+        }
+
+        const weatherData = await weatherRes.json();
+
+        // 1. Process Soil Metrics safely
+        const rawMoisture = soilData.moisture !== undefined ? soilData.moisture : 0.312;
+        const rawT0 = soilData.t0 !== undefined ? soilData.t0 : 301.15;
+        const rawT10 = soilData.t10 !== undefined ? soilData.t10 : 299.15;
+        const uvi = soilData.uvi !== undefined ? soilData.uvi : 4;
+
+        const moisture = Number(rawMoisture).toFixed(3);
+        const tempSurface = (Number(rawT0) - 273.15).toFixed(1);
+        const temp10cm = (Number(rawT10) - 273.15).toFixed(1);
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val;
+        };
+
+        setVal('moisture-display', moisture);
+        setVal('temp-display', tempSurface);
+        setVal('temp10-display', temp10cm);
+        setVal('uvi-display', uvi);
+
+        // 2. Process Weather (Open-Meteo Format matching your Flask backend)
+        if (weatherData.current) {
+            const airTemp = weatherData.current.temperature_2m || 25;
+            const humidity = weatherData.current.relative_humidity_2m || 60;
+            const windSpeed = weatherData.current.wind_speed_10m || 5; // km/h
+            const rain1h = weatherData.current.precipitation || 0;
+
+            setVal('rain-display', rain1h);
+
+            // Calculate ET Proxy (Evapotranspiration)
+            let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uvi * 0.2);
+            if (etProxy < 0) etProxy = 0;
+            setVal('et-display', etProxy.toFixed(1));
+
+            // Calculate Soil Moisture Deficit (SMD) - Assume 0.35 field capacity
+            let mNum = parseFloat(moisture);
+            let smd = 0.35 - mNum;
+            if (smd < 0) smd = 0;
+            setVal('smd-display', smd.toFixed(3));
+
+            // Update text reasoning
+            const reasoningEl = document.getElementById('riskReasoning');
+            if (reasoningEl) {
+                reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
+            }
+        }
+
+        // 3. Agronomic Fitness Logic
+        const fitnessStatusElement = document.getElementById('fitness-status');
+        if (fitnessStatusElement) {
+            const t10Num = parseFloat(temp10cm);
+            const mNum = parseFloat(moisture);
+
+            if (t10Num < 5) {
+                fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
+                fitnessStatusElement.style.color = "#ff4d4d";
+            } else if (mNum > 0.35) {
+                fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
+                fitnessStatusElement.style.color = "#ff4d4d";
+            } else if (t10Num >= 10 && t10Num <= 20) {
+                fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
+                fitnessStatusElement.style.color = "#4B7340";
+            } else {
+                fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
+                fitnessStatusElement.style.color = "#E3A430";
+            }
+        }
+
+    } catch (error) {
+        console.error("Error fetching live field data:", error);
+    }
+}
+
+// Run on page load
+updateLiveFieldData();
+
 
     const barChart = document.getElementById("barChart");
     if (barChart) {
@@ -1388,95 +1481,3 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
   if (recordBtn) recordBtn.textContent = "Record Voice Note";
 });
 
-// Run Init
-initApp();
-async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
-    try {
-        const [soilRes, weatherRes] = await Promise.all([
-            fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
-            fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
-        ]);
-
-        let soilData = await soilRes.json();
-        // Handle case if soilData is returned as an array by the API
-        if (Array.isArray(soilData) && soilData.length > 0) {
-            soilData = soilData[0];
-        }
-
-        const weatherData = await weatherRes.json();
-
-        // 1. Process Soil Metrics safely
-        const rawMoisture = soilData.moisture !== undefined ? soilData.moisture : 0.312;
-        const rawT0 = soilData.t0 !== undefined ? soilData.t0 : 301.15;
-        const rawT10 = soilData.t10 !== undefined ? soilData.t10 : 299.15;
-        const uvi = soilData.uvi !== undefined ? soilData.uvi : 4;
-
-        const moisture = Number(rawMoisture).toFixed(3);
-        const tempSurface = (Number(rawT0) - 273.15).toFixed(1);
-        const temp10cm = (Number(rawT10) - 273.15).toFixed(1);
-
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = val;
-        };
-
-        setVal('moisture-display', moisture);
-        setVal('temp-display', tempSurface);
-        setVal('temp10-display', temp10cm);
-        setVal('uvi-display', uvi);
-
-        // 2. Process Weather (Open-Meteo Format matching your Flask backend)
-        if (weatherData.current) {
-            const airTemp = weatherData.current.temperature_2m || 25;
-            const humidity = weatherData.current.relative_humidity_2m || 60;
-            const windSpeed = weatherData.current.wind_speed_10m || 5; // km/h
-            const rain1h = weatherData.current.precipitation || 0;
-
-            setVal('rain-display', rain1h);
-
-            // Calculate ET Proxy (Evapotranspiration)
-            let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uvi * 0.2);
-            if (etProxy < 0) etProxy = 0;
-            setVal('et-display', etProxy.toFixed(1));
-
-            // Calculate Soil Moisture Deficit (SMD) - Assume 0.35 field capacity
-            let mNum = parseFloat(moisture);
-            let smd = 0.35 - mNum;
-            if (smd < 0) smd = 0;
-            setVal('smd-display', smd.toFixed(3));
-
-            // Update text reasoning
-            const reasoningEl = document.getElementById('riskReasoning');
-            if (reasoningEl) {
-                reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
-            }
-        }
-
-        // 3. Agronomic Fitness Logic
-        const fitnessStatusElement = document.getElementById('fitness-status');
-        if (fitnessStatusElement) {
-            const t10Num = parseFloat(temp10cm);
-            const mNum = parseFloat(moisture);
-
-            if (t10Num < 5) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (mNum > 0.35) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (t10Num >= 10 && t10Num <= 20) {
-                fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
-                fitnessStatusElement.style.color = "#4B7340";
-            } else {
-                fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
-                fitnessStatusElement.style.color = "#E3A430";
-            }
-        }
-
-    } catch (error) {
-        console.error("Error fetching live field data:", error);
-    }
-}
-
-// Run on page load
-updateLiveFieldData();
