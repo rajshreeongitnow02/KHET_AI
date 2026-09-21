@@ -1061,7 +1061,7 @@ function switchView(view){
   
   updateAuthUI();
 
-  if(view === "officer" && currentOfficerUser){
+  if(view === "officer"){
     renderOfficerDash();
     initOrUpdateMap();
     setTimeout(()=>{
@@ -1070,7 +1070,7 @@ function switchView(view){
       }
     },250);
   }
-};
+}
 
 function applyStaticText(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{
