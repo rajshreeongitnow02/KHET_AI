@@ -1444,11 +1444,7 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
             if (smd < 0) smd = 0;
             setVal('smd-display', smd.toFixed(3));
 
-            // Update text reasoning
-            const reasoningEl = document.getElementById('riskReasoning');
-            if (reasoningEl) {
-                reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
-            }
+          
         }
 
         // 3. Agronomic Fitness Logic
