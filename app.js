@@ -746,7 +746,7 @@ document.getElementById("districtSelect")?.addEventListener("change", (e)=>{
     // Fetch coordinates for the chosen district and update the 7 metrics
     const coords = districtCoords[currentDistrictId];
     if (coords) {
-        updateLiveFieldData(coords.lat, coords.lon);
+        updateLiveFieldData(coords.lat, coords.lon, currentDistrictId);
     }
 });
 
@@ -1401,7 +1401,7 @@ async function fetchJson(url) {
   return res.json();
 }
 
-async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
+async function updateLiveFieldData(lat = "18.5204", lon = "73.8567", district = currentDistrictId) {
   const setVal = (id, val) => {
     const el = document.getElementById(id);
     if (el) el.innerText = val;
@@ -1409,7 +1409,7 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
 
   // Fetch independently so a failure in one doesn't blank out the other
   const [soilResult, weatherResult] = await Promise.allSettled([
-    fetchJson(`${BACKEND_URL}/soil-health`),
+    fetchJson(`${BACKEND_URL}/soil-health?lat=${lat}&lon=${lon}&district=${encodeURIComponent(district)}`),
     fetchJson(`${BACKEND_URL}/weather?lat=${lat}&lon=${lon}`)
   ]);
 
@@ -1438,6 +1438,17 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
     setVal('temp-display', '--');
     setVal('temp10-display', '--');
     setVal('uvi-display', '--');
+  }
+
+  const sourceNote = document.getElementById('soil-source-note');
+  if (sourceNote) {
+    if (!soilData) {
+      sourceNote.textContent = '';
+    } else if (soilData.source === 'sensor') {
+      sourceNote.textContent = '📡 Live sensor reading for this field.';
+    } else {
+      sourceNote.textContent = `🌦️ ${soilData.note || 'Estimated from this district\'s live weather.'}`;
+    }
   }
 
   // 2. Weather (Open-Meteo format via the Flask proxy)
@@ -1489,5 +1500,8 @@ async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
   }
 }
 
-// Run on page load
-updateLiveFieldData();
+// Run on page load, using the currently selected district's own coordinates
+(() => {
+  const initialCoords = districtCoords[currentDistrictId] || { lat: "18.5204", lon: "73.8567" };
+  updateLiveFieldData(initialCoords.lat, initialCoords.lon, currentDistrictId);
+})();
