@@ -305,12 +305,15 @@ async function updateRiskUI(districtName) {
   const coords = districtCoords[districtName];
   if (!coords) return;
 
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,leaf_wetness_probability_mean&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=auto`;
 
   try {
     const response = await fetch(url);
     const data = await response.json();
-    if (!data.daily) return;
+    if (!data.daily) {
+      console.warn("Open-Meteo returned no daily data:", data);
+      return;
+    }
     
     const daily = data.daily;
     const current = data.current;
@@ -994,6 +997,8 @@ async function renderOfficerDash(){
             <button class="btn btn-secondary btn-sm" data-action="lab" data-id="${c.id}">${off.labBtn || 'Send to Lab'}</button>
             <button class="btn btn-secondary btn-sm" data-action="followup" data-id="${c.id}">${off.followupBtn || 'Set Follow-up'}</button>
           ` : ""}
+          ${c.status==="lab_testing" ? `<button class="btn btn-secondary btn-sm" data-action="resolve" data-id="${c.id}">${off.resolveBtn || 'Resolve'}</button>` : ""}
+          ${c.archived ? `<button class="btn btn-secondary btn-sm" data-action="restore" data-id="${c.id}">${off.restoreBtn || 'Restore'}</button>` : ""}
         </div>
       </div>`;
     grid.appendChild(card);
@@ -1052,7 +1057,6 @@ function escapeHtml(str){
 }
 
 /* ===================== VIEW & LANGUAGE SWITCHERS ===================== */
-const originalSwitchView=switchView;
 function switchView(view){
   currentView = view;
   document.querySelectorAll(".view-btn").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
@@ -1061,7 +1065,7 @@ function switchView(view){
   
   updateAuthUI();
 
-  if(view === "officer" && currentOfficerUser){
+  if(view === "officer"){
     renderOfficerDash();
     initOrUpdateMap();
     setTimeout(()=>{
@@ -1070,7 +1074,7 @@ function switchView(view){
       }
     },250);
   }
-};
+}
 
 function applyStaticText(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{
@@ -1389,95 +1393,101 @@ document.getElementById("removeAudioBtn")?.addEventListener("click", () => {
 });
   // Run Init
 initApp();
+const BACKEND_URL = typeof window.BACKEND_URL !== "undefined" ? window.BACKEND_URL : "https://khet-ai-m9n1.onrender.com";
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
 async function updateLiveFieldData(lat = "18.5204", lon = "73.8567") {
-    try {
-        const [soilRes, weatherRes] = await Promise.all([
-            fetch('https://khet-ai-m9n1.onrender.com/soil-health'),
-            fetch(`https://khet-ai-m9n1.onrender.com/weather?lat=${lat}&lon=${lon}`)
-        ]);
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = val;
+  };
 
-        let soilData = await soilRes.json();
-        // Handle case if soilData is returned as an array by the API
-        if (Array.isArray(soilData) && soilData.length > 0) {
-            soilData = soilData[0];
-        }
+  // Fetch independently so a failure in one doesn't blank out the other
+  const [soilResult, weatherResult] = await Promise.allSettled([
+    fetchJson(`${BACKEND_URL}/soil-health`),
+    fetchJson(`${BACKEND_URL}/weather?lat=${lat}&lon=${lon}`)
+  ]);
 
-        const weatherData = await weatherRes.json();
+  let soilData = soilResult.status === "fulfilled" ? soilResult.value : null;
+  if (Array.isArray(soilData)) soilData = soilData[0] || null;
+  if (soilData && soilData.error) soilData = null; // backend/upstream error payload
+  const weatherData = weatherResult.status === "fulfilled" ? weatherResult.value : null;
 
-        // 1. Process Soil Metrics safely
-        const rawMoisture = soilData.moisture !== undefined ? soilData.moisture : 0.312;
-        const rawT0 = soilData.t0 !== undefined ? soilData.t0 : 301.15;
-        const rawT10 = soilData.t10 !== undefined ? soilData.t10 : 299.15;
-        const uvi = soilData.uvi !== undefined ? soilData.uvi : 4;
+  if (soilResult.status === "rejected") console.error("Soil data unavailable:", soilResult.reason);
+  if (weatherResult.status === "rejected") console.error("Weather data unavailable:", weatherResult.reason);
 
-        const moisture = Number(rawMoisture).toFixed(3);
-        const tempSurface = (Number(rawT0) - 273.15).toFixed(1);
-        const temp10cm = (Number(rawT10) - 273.15).toFixed(1);
+  // 1. Soil metrics (Agromonitoring returns Kelvin for t0/t10) - only show real readings
+  let moistureNum = null, t10Num = null, uvi = null;
+  if (soilData && soilData.moisture !== undefined) {
+    moistureNum = Number(soilData.moisture);
+    const tSurface = soilData.t0 !== undefined ? Number(soilData.t0) - 273.15 : null;
+    t10Num = soilData.t10 !== undefined ? Number(soilData.t10) - 273.15 : null;
+    uvi = soilData.uvi !== undefined ? Number(soilData.uvi) : null;
 
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = val;
-        };
+    setVal('moisture-display', moistureNum.toFixed(3));
+    setVal('temp-display', tSurface !== null ? tSurface.toFixed(1) : '--');
+    setVal('temp10-display', t10Num !== null ? t10Num.toFixed(1) : '--');
+    setVal('uvi-display', uvi !== null ? uvi : '--');
+  } else {
+    setVal('moisture-display', '--');
+    setVal('temp-display', '--');
+    setVal('temp10-display', '--');
+    setVal('uvi-display', '--');
+  }
 
-        setVal('moisture-display', moisture);
-        setVal('temp-display', tempSurface);
-        setVal('temp10-display', temp10cm);
-        setVal('uvi-display', uvi);
+  // 2. Weather (Open-Meteo format via the Flask proxy)
+  if (weatherData && weatherData.current) {
+    const cur = weatherData.current;
+    const airTemp = cur.temperature_2m ?? 25;
+    const humidity = cur.relative_humidity_2m ?? 60;
+    const windSpeed = cur.wind_speed_10m ?? 5; // km/h
+    const rain1h = cur.precipitation ?? 0;
 
-        // 2. Process Weather (Open-Meteo Format matching your Flask backend)
-        if (weatherData.current) {
-            const airTemp = weatherData.current.temperature_2m || 25;
-            const humidity = weatherData.current.relative_humidity_2m || 60;
-            const windSpeed = weatherData.current.wind_speed_10m || 5; // km/h
-            const rain1h = weatherData.current.precipitation || 0;
+    setVal('rain-display', rain1h);
 
-            setVal('rain-display', rain1h);
+    const uviForEt = uvi ?? 4;
+    let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uviForEt * 0.2);
+    if (etProxy < 0) etProxy = 0;
+    setVal('et-display', etProxy.toFixed(1));
 
-            // Calculate ET Proxy (Evapotranspiration)
-            let etProxy = (airTemp * 0.15) + (windSpeed * 0.1) - (humidity * 0.02) + (uvi * 0.2);
-            if (etProxy < 0) etProxy = 0;
-            setVal('et-display', etProxy.toFixed(1));
-
-            // Calculate Soil Moisture Deficit (SMD) - Assume 0.35 field capacity
-            let mNum = parseFloat(moisture);
-            let smd = 0.35 - mNum;
-            if (smd < 0) smd = 0;
-            setVal('smd-display', smd.toFixed(3));
-
-            // Update text reasoning
-            const reasoningEl = document.getElementById('riskReasoning');
-            if (reasoningEl) {
-                reasoningEl.innerText = `Temp: ${airTemp.toFixed(1)}°C | Humidity: ${humidity}% | Rain: ${rain1h}mm | Wind: ${windSpeed.toFixed(1)} km/h`;
-            }
-        }
-
-        // 3. Agronomic Fitness Logic
-        const fitnessStatusElement = document.getElementById('fitness-status');
-        if (fitnessStatusElement) {
-            const t10Num = parseFloat(temp10cm);
-            const mNum = parseFloat(moisture);
-
-            if (t10Num < 5) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (mNum > 0.35) {
-                fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
-                fitnessStatusElement.style.color = "#ff4d4d";
-            } else if (t10Num >= 10 && t10Num <= 20) {
-                fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
-                fitnessStatusElement.style.color = "#4B7340";
-            } else {
-                fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
-                fitnessStatusElement.style.color = "#E3A430";
-            }
-        }
-
-    } catch (error) {
-        console.error("Error fetching live field data:", error);
+    if (moistureNum !== null) {
+      const smd = Math.max(0, 0.35 - moistureNum); // assume 0.35 field capacity
+      setVal('smd-display', smd.toFixed(3));
+    } else {
+      setVal('smd-display', '--');
     }
+  } else {
+    setVal('rain-display', '--');
+    setVal('et-display', '--');
+    setVal('smd-display', '--');
+  }
+
+  // 3. Agronomic fitness
+  const fitnessStatusElement = document.getElementById('fitness-status');
+  if (fitnessStatusElement) {
+    if (moistureNum === null || t10Num === null || Number.isNaN(moistureNum) || Number.isNaN(t10Num)) {
+      fitnessStatusElement.innerText = "Soil sensor data unavailable right now.";
+      fitnessStatusElement.style.color = "#a1a1aa";
+    } else if (t10Num < 5) {
+      fitnessStatusElement.innerText = "⛔ UNFIT: Biological Zero. Seeds will rot (Temp < 5°C).";
+      fitnessStatusElement.style.color = "#ff4d4d";
+    } else if (moistureNum > 0.35) {
+      fitnessStatusElement.innerText = "⛔ UNFIT: Saturated soil. High compaction risk.";
+      fitnessStatusElement.style.color = "#ff4d4d";
+    } else if (t10Num >= 10 && t10Num <= 20) {
+      fitnessStatusElement.innerText = "✅ FIT: Optimal for warm-season crops (10°C - 20°C).";
+      fitnessStatusElement.style.color = "#4B7340";
+    } else {
+      fitnessStatusElement.innerText = "✅ FIT: Suitable for cool-season planting.";
+      fitnessStatusElement.style.color = "#E3A430";
+    }
+  }
 }
 
 // Run on page load
 updateLiveFieldData();
-
-
