@@ -35,6 +35,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 body.lang-hi, body.lang-mr { line-height: 1.7; }
+body.lang-bn { line-height: 1.7; font-family: 'Noto Sans Bengali', var(--body); }
 img, svg { display: block; max-width: 100%; }
 button { font-family: inherit; }
 h1, h2, h3 { font-family: var(--display); margin: 0; color: var(--ink); }
@@ -130,6 +131,7 @@ p { margin: 0; }
   display: none; max-width: 520px;
 }
 .leaf-check-msg.show { display: block; }
+.leaf-check-msg.analyzing,
 .leaf-check-msg.checking { background: var(--monsoon-light); color: var(--ink-soft); }
 .leaf-check-msg.error { background: var(--alert-high-bg); color: var(--alert-high); font-weight: 600; }
 
@@ -264,7 +266,10 @@ select option { background: var(--paper); color: var(--ink); }
 .footer-row strong { color: var(--paper); }
 .disclaimer { margin-top: 14px; font-size: 12.5px; color: #9A8F78; max-width: 70ch; border-top: 1px solid rgba(255,255,255,.1); padding-top: 14px; }
 
+.sensor-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 16px; text-align: center; }
+
 @media (max-width:860px){
+  .sensor-grid{grid-template-columns:repeat(4,1fr);}
   .hero-grid{grid-template-columns:1fr;}
   .hero h1{font-size:34px;}
   .leaf-grid{grid-template-columns:repeat(3,1fr);}
@@ -274,6 +279,7 @@ select option { background: var(--paper); color: var(--ink); }
   .sensor-input-wrap{margin-left:0; width:100%; justify-content:space-between;}
 }
 @media (max-width:520px){
+  .sensor-grid{grid-template-columns:repeat(2,1fr);}
   .leaf-grid{grid-template-columns:repeat(2,1fr);}
   .steps{grid-template-columns:1fr;}
   .hero h1{font-size:28px;}
@@ -285,7 +291,7 @@ select option { background: var(--paper); color: var(--ink); }
 }
 /* Auth & Login System Styles */
 .auth-modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  position: fixed; inset: 0;
   background: rgba(36, 28, 20, 0.7); backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
   z-index: 100; padding: 20px;
